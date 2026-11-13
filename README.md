@@ -113,6 +113,8 @@ Free offers change. If a provider stops its free tier, the app still works from 
 | Image creation | 5 |
 | Simple chatting | 5 |
 
+The owner is exempt from these daily limits — he is free forever with everything unlocked, and the limits exist to protect the shared free credits from other users, not to lock the owner out of his own app. (Students still have the limits above.)
+
 ## The payment model
 
 - **Owner: free forever, everything unlocked.** The owner never pays for his own use.

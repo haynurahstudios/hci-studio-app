@@ -27,7 +27,13 @@ function remainingToday(userId, kind) {
 }
 
 // Returns null when allowed, or an Error with a plain message when over.
-function checkLimit(userId, kind) {
+// The OWNER is exempt from daily limits: he is free forever with
+// everything unlocked, and the limits exist to protect the shared free
+// credits from other users — not to lock the owner out of his own app.
+// `user` is the logged-in user row (or a plain user id for old callers).
+function checkLimit(user, kind) {
+  const userId = user && typeof user === 'object' ? user.id : user;
+  if (user && typeof user === 'object' && user.role === 'owner') return null;
   const limit = LIMITS[kind];
   if (!limit) return null;
   if (usedToday(userId, kind) >= limit) {

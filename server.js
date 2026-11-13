@@ -158,7 +158,7 @@ app.get('/api/platforms', (req, res) => res.json(platformList()));
 
 // ---------- Ideas: trending + directions (live brain — deep tools) ----------
 app.post('/api/idea/trending', auth.requireLogin, access.requireDeep, async (req, res) => {
-  const over = limits.checkLimit(req.user.id, 'trending');
+  const over = limits.checkLimit(req.user, 'trending');
   if (over) return res.status(429).json({ error: over.message });
   try {
     const result = await trending(String(req.body?.topic || ''), userKeysFor(req));
@@ -166,13 +166,14 @@ app.post('/api/idea/trending', auth.requireLogin, access.requireDeep, async (req
     if (result.available === false) return res.json(result);
     res.json(result);
   } catch (e) {
+    console.error('trending failed:', String(e.message).slice(0, 300));
     logUsage(req.user.id, 'trending', '', '', String(e.message).slice(0, 200), false);
     res.status(502).json({ error: 'Live search failed: ' + String(e.message).slice(0, 300) });
   }
 });
 
 app.post('/api/idea/directions', auth.requireLogin, access.requireDeep, async (req, res) => {
-  const over = limits.checkLimit(req.user.id, 'think');
+  const over = limits.checkLimit(req.user, 'think');
   if (over) return res.status(429).json({ error: over.message });
   const keys = userKeysFor(req);
   if (!providers.hasBrain(keys)) {
@@ -203,6 +204,7 @@ app.post('/api/idea/directions', auth.requireLogin, access.requireDeep, async (r
     if (parsed && Array.isArray(parsed.directions)) return res.json({ ...parsed, provider: out.provider, model: out.model });
     res.json({ raw: out.text, provider: out.provider, model: out.model, note: 'The brain answered in words, not JSON. Read it as three directions and pick one.' });
   } catch (e) {
+    console.error('directions failed:', String(e.message).slice(0, 300));
     logUsage(req.user.id, 'think', '', '', String(e.message).slice(0, 200), false);
     res.status(502).json({ error: 'The brain could not answer: ' + String(e.message).slice(0, 300) });
   }
@@ -221,7 +223,7 @@ app.get('/api/muse/greeting', auth.requireLogin, (req, res) => {
 // ---------- Basic chatting with Muse (stays free for everyone, including basic tier) ----------
 // Simple questions and short answers. Deep thinking tools are separate.
 app.post('/api/chat', auth.requireLogin, async (req, res) => {
-  const over = limits.checkLimit(req.user.id, 'chat');
+  const over = limits.checkLimit(req.user, 'chat');
   if (over) return res.status(429).json({ error: over.message });
   const keys = userKeysFor(req);
   if (!providers.hasBrain(keys)) {
@@ -240,6 +242,7 @@ app.post('/api/chat', auth.requireLogin, async (req, res) => {
     logUsage(req.user.id, 'chat', out.provider, out.model, message.slice(0, 80), true);
     res.json({ reply: out.text, provider: out.provider, assistant: 'Muse' });
   } catch (e) {
+    console.error('chat failed:', String(e.message).slice(0, 300));
     logUsage(req.user.id, 'chat', '', '', String(e.message).slice(0, 200), false);
     res.status(502).json({ error: 'Muse could not answer: ' + String(e.message).slice(0, 300) });
   }
@@ -256,7 +259,7 @@ app.post('/api/studio/prompt', auth.requireLogin, access.requireDeep, (req, res)
 
 // ---------- Studio: image creation (needs an image key — deep tool) ----------
 app.post('/api/studio/image', auth.requireLogin, access.requireDeep, async (req, res) => {
-  const over = limits.checkLimit(req.user.id, 'image');
+  const over = limits.checkLimit(req.user, 'image');
   if (over) return res.status(429).json({ error: over.message });
   const keys = userKeysFor(req);
   if (!providers.keyFor('openai', keys)) {
@@ -276,6 +279,7 @@ app.post('/api/studio/image', auth.requireLogin, access.requireDeep, async (req,
     logUsage(req.user.id, 'image', img.provider, img.model, style, true);
     res.json({ id, url: '/api/images/' + id, model: img.model, style });
   } catch (e) {
+    console.error('image failed:', String(e.message).slice(0, 300));
     logUsage(req.user.id, 'image', 'openai', '', String(e.message).slice(0, 200), false);
     res.status(502).json({ error: 'Image creation failed: ' + String(e.message).slice(0, 300) });
   }
@@ -428,7 +432,7 @@ app.post('/api/website/build', auth.requireLogin, access.requireDeep, async (req
       if (!providers.hasBrain(keys)) {
         return res.status(503).json({ error: 'Custom website building needs a key. No AI key is set — add your own key in Settings, or use the template builder, which works without a key.' });
       }
-      const over = limits.checkLimit(req.user.id, 'think');
+      const over = limits.checkLimit(req.user, 'think');
       if (over) return res.status(429).json({ error: over.message });
       const out = await providers.think(
         [{ role: 'user', content:
@@ -444,6 +448,7 @@ app.post('/api/website/build', auth.requireLogin, access.requireDeep, async (req
       html = website.buildFromTemplate(input).html;
     }
   } catch (e) {
+    console.error('website failed:', String(e.message).slice(0, 300));
     logUsage(req.user.id, 'website', '', '', String(e.message).slice(0, 200), false);
     return res.status(502).json({ error: 'Website building failed: ' + String(e.message).slice(0, 300) });
   }
