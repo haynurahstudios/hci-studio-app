@@ -74,7 +74,7 @@ function brainStatus(userKeys) {
   return {
     liveBrain: providers.length > 0,
     providers,
-    imageReady: Boolean(keyFor('openai', userKeys)),
+    imageReady: Boolean(keyFor('openai', userKeys) || (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID)),
     searchReady,
     note: providers.length === 0
       ? 'No AI key is set. The studio still works for prompt-building from its built-in HCI knowledge, but the live brain (thinking, trending ideas, image creation) needs a key. Add your own key in Settings — your key stays yours and your thinking uses your own free credits.'
@@ -261,10 +261,52 @@ async function research(query, userKeys = null) {
   return { ...r, sources: [] };
 }
 
-// Image generation (OpenAI Images API). Returns { provider, model, base64, mime }.
-// The decency lock is appended to EVERY image prompt the app builds —
-// no image is ever generated without it.
+// Image generation — FREE first, paid as a fallback. Returns
+// { provider, model, base64, mime }.
+// Cloudflare Workers AI (FLUX.1 [schnell]) is FREE: a free Cloudflare
+// account, no card, about 200 images a day. OpenAI (gpt-image-1) is the
+// paid fallback and needs credits. The decency lock is appended to EVERY
+// image prompt the app builds — no image is ever generated without it.
+async function createImageCloudflare(prompt, style) {
+  const token = process.env.CLOUDFLARE_API_TOKEN;
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  if (!token || !accountId) throw new Error('NO_IMAGE_KEY');
+  const fullPrompt =
+    'Image in the style of ' + (style || 'cinematic realism') + '. ' + prompt + ' ' + IMAGE_DECENCY_LOCK +
+    ' No legible text, no logos, no watermarks.';
+  const res = await fetch(
+    'https://api.cloudflare.com/client/v4/accounts/' + accountId + '/ai/run/@cf/black-forest-labs/flux-1-schnell',
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token },
+      body: JSON.stringify({ prompt: fullPrompt, steps: 4 }),
+      signal: AbortSignal.timeout(120000),
+    }
+  );
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error('Cloudflare image error (' + res.status + '): ' + text.slice(0, 200));
+  }
+  const ct = res.headers.get('content-type') || '';
+  if (ct.includes('application/json')) {
+    const text = await res.text().catch(() => '');
+    throw new Error('Cloudflare image error: ' + text.slice(0, 200));
+  }
+  const buf = Buffer.from(await res.arrayBuffer());
+  if (!buf.length) throw new Error('The image provider returned no image.');
+  return { provider: 'cloudflare', model: 'flux-1-schnell', base64: buf.toString('base64'), mime: 'image/png' };
+}
+
 async function createImage(prompt, style, userKeys = null) {
+  // Free first: Cloudflare. If it is not set up, or it refuses, fall
+  // through to OpenAI (paid, needs credits).
+  if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) {
+    try {
+      return await createImageCloudflare(prompt, style);
+    } catch (e) {
+      console.error('cloudflare image failed, trying OpenAI:', e.message);
+    }
+  }
   const key = keyFor('openai', userKeys);
   if (!key) throw new Error('NO_IMAGE_KEY');
   const fullPrompt =
