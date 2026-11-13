@@ -165,44 +165,56 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000 } =
     return { provider: 'groq', model: 'openai/gpt-oss-120b', text: data.choices?.[0]?.message?.content || '' };
     } catch (e) { lastProviderErr = e; }
   }
-  // OpenRouter: many free models behind one key, OpenAI-compatible.
-  // Free tier, no card, sign in with Google (no email link).
-  // Primary model: Nemotron 3 Ultra 550B (free). The free roster rotates,
-  // and free models often refuse with 429 (rate limit) or 503 (the upstream
-  // provider is down) when their upstream is busy, so on a 429 or any 5xx
-  // the next model in the list is tried instead of giving up. Free models
+  // OpenRouter: the three free Nemotron models work as a TEAM. They are
+  // asked at the same time, and the best answer that comes back is used
+  // (Ultra first, then Super VL, then Nano). If only one of them is up,
+  // that one answers alone; if two are up, those two carry it. If all
+  // three are down, the openrouter/free router is tried once as a last
+  // resort. A team costs 3 free calls per chat instead of 1, so the free
+  // 50-a-day limit finishes faster — that is the price of working together.
+  // Free tier, no card, sign in with Google (no email link). Free models
   // also reason before answering, so the token budget gets generous headroom.
   if (keyFor('openrouter', userKeys)) {
     try {
-    const models = [
+    const team = [
       'nvidia/nemotron-3-ultra-550b-a55b:free',
       'nvidia/nemotron-3.5-super-vl:free',
       'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-      'openrouter/free',
     ];
     const budget = Math.max(maxTokens, 4000);
-    let lastErr = null;
-    for (const model of models) {
-      try {
-        const data = await fetchJson('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            authorization: 'Bearer ' + keyFor('openrouter', userKeys),
-            'HTTP-Referer': 'https://hci-studio-app-production.up.railway.app/',
-            'X-Title': 'HCI Studio',
-          },
-          body: JSON.stringify({ model, temperature, max_tokens: budget, messages: [{ role: 'system', content: sys }, ...messages] }),
-        });
-        return { provider: 'openrouter', model, text: data.choices?.[0]?.message?.content || '' };
-      } catch (e) {
-        lastErr = e;
-        // A busy upstream answers 429 (rate limit) or 503 (provider down).
-        // Try the next free model instead of giving up on the first failure.
-        if (!/429|50[0-9]/.test(String(e.message || ''))) throw e;
+    const callModel = (model) => fetchJson('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: 'Bearer ' + keyFor('openrouter', userKeys),
+        'HTTP-Referer': 'https://hci-studio-app-production.up.railway.app/',
+        'X-Title': 'HCI Studio',
+      },
+      body: JSON.stringify({ model, temperature, max_tokens: budget, messages: [{ role: 'system', content: sys }, ...messages] }),
+    }).then((data) => ({ model, text: data.choices?.[0]?.message?.content || '' }));
+    // The team works together: all three are asked at once, and the best
+    // answer wins. Any one of them can answer alone if the others are down.
+    const results = await Promise.allSettled(team.map(callModel));
+    for (let i = 0; i < team.length; i++) {
+      if (results[i].status === 'fulfilled' && results[i].value.text) {
+        return { provider: 'openrouter', model: results[i].value.model, text: results[i].value.text };
       }
     }
-    throw lastErr || new Error('OpenRouter: all free models refused.');
+    const lastErr = (results.find((r) => r.status === 'rejected') || {}).reason || null;
+    // Last resort: the router picks any free model that is up.
+    try {
+      const data = await fetchJson('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          authorization: 'Bearer ' + keyFor('openrouter', userKeys),
+          'HTTP-Referer': 'https://hci-studio-app-production.up.railway.app/',
+          'X-Title': 'HCI Studio',
+        },
+        body: JSON.stringify({ model: 'openrouter/free', temperature, max_tokens: budget, messages: [{ role: 'system', content: sys }, ...messages] }),
+      });
+      return { provider: 'openrouter', model: 'openrouter/free', text: data.choices?.[0]?.message?.content || '' };
+    } catch (e) { throw lastErr || e; }
     } catch (e) { lastProviderErr = e; }
   }
   if (keyFor('perplexity', userKeys)) {

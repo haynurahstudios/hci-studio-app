@@ -74,7 +74,13 @@ function route() {
   Promise.resolve(fn()).then((html) => { view.innerHTML = html; afterRender(page); }).catch((e) => { view.innerHTML = `<div class="notice warn">Something went wrong: ${esc(e.message)}</div>`; });
 }
 
-function afterRender(page) { if (page === 'studio') { renderStudioStep(); loadMuseTip(S.studio.step); } }
+function afterRender(page) {
+  if (page === 'studio') { renderStudioStep(); loadMuseTip(S.studio.step); }
+  // A normal chat box always shows the latest message: scroll the log to
+  // the bottom whenever the Home renders, so the input never gets pushed
+  // off the screen by a long chat.
+  if (page === 'home') { const cl = document.getElementById('chatLog'); if (cl) cl.scrollTop = cl.scrollHeight; }
+}
 
 // ---------------- Home ----------------
 function brainCard() {
@@ -118,9 +124,9 @@ function chatLogHtml() {
     const greet = space === 'friendly'
       ? 'Hi, I’m here. Tell me about your day.'
       : 'Hi, what idea do you want to bring to life today?';
-    return `<div class="chat-msg hci"><b>Muse:</b> ${esc(greet)}</div>`;
+    return `<div class="chat-msg hci">${esc(greet)}</div>`;
   }
-  return log.map((m) => `<div class="chat-msg ${m.who === 'you' ? 'you' : 'hci'}"><b>${m.who === 'you' ? 'You' : 'Muse'}:</b> ${renderChatText(m.text)}${m.failed ? `<p><button class="btn small" onclick="App.retryChat()">Try again</button></p>` : ''}</div>`).join('');
+  return log.map((m) => `<div class="chat-msg ${m.who === 'you' ? 'you' : 'hci'}">${renderChatText(m.text)}${m.failed ? `<p><button class="btn small" onclick="App.retryChat()">Try again</button></p>` : ''}</div>`).join('');
 }
 
 // ---------------- Chat: the chatbot card ----------------
@@ -134,8 +140,8 @@ function chatCardHtml() {
     <div class="chat-tabs"><button class="pill ${S.chatSpace === 'work' ? 'on' : ''}" onclick="App.setSpace('work')">\u{1F4BC} Workspace</button><button class="pill ${S.chatSpace === 'friendly' ? 'on' : ''}" onclick="App.setSpace('friendly')">\u{1F4AC} Friendly chat</button></div>
     <div id="chatLog" class="chatlog">${chatLogHtml()}</div>
     ${loggedIn
-      ? `<textarea id="chatInput" class="chat-input" rows="2" placeholder="${S.chatSpace === 'work' ? 'Tell Muse your idea\u2026' : 'How was your day?'}" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.chat();}"></textarea>
-    <button class="btn" onclick="App.chat()">Send</button>
+      ? `<div class="chat-row"><textarea id="chatInput" class="chat-input" rows="1" placeholder="${S.chatSpace === 'work' ? 'Tell Muse your idea\u2026' : 'How was your day?'}" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.chat();}"></textarea>
+    <button class="btn chat-send" onclick="App.chat()">Send</button></div>
     <p class="muted">${S.access ? esc(S.access.message || '') : ''}</p>`
       : `<p><a class="btn" href="#/auth">Log in / Sign up to chat</a></p>`}
   </div>`;
