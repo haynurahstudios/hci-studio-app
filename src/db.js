@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS sites (
 for (const [col, def] of [
   ['plan', "TEXT NOT NULL DEFAULT 'trial'"],
   ['trial_ends_at', 'TEXT'],
+  ['free_forever', 'INTEGER NOT NULL DEFAULT 0'],
 ]) {
   try { db.exec(`ALTER TABLE users ADD COLUMN ${col} ${def};`); } catch (_) { /* already there */ }
 }

@@ -74,6 +74,7 @@ app.get('/api/status', (req, res) => {
     access: access.getAccess(req.user),
     payment: {
       owner: 'Free forever, everything unlocked.',
+      chosen: 'The owner chooses up to 10 people to be free forever, everything unlocked. Anytime someone wins his heart, he makes it free for them.',
       trial: '14 days free, full access to everything.',
       afterTrial: 'Deep thinking tools (live research, trend search, image creation, the full step-by-step prompt studio) need a paid plan. Payments start after the test — no payment provider is integrated yet. Users who do not pay keep basic access: the learning pages and simple chatting with HCI.',
       moneyFlow: 'When users pay, the money goes to the owner. He is the builder and creator, so he earns from it: subscription payments come to him, the AI thinking costs are paid out of that revenue, and the remainder is his earnings. The app never takes payments for itself and never routes them anywhere except the owner’s account. Natural option: Selar (he already sells his lessons through Selar, in Naira and dollars). Alternatives: Stripe or Paystack. The final provider choice is his, after the test.',
@@ -341,8 +342,33 @@ app.get('/api/usage', auth.requireOwner, (req, res) => {
 
 // ---------- Owner admin ----------
 app.get('/api/admin/users', auth.requireOwner, (req, res) => {
-  const rows = db.prepare('SELECT id, email, name, role, created_at, trial_ends_at FROM users ORDER BY created_at ASC').all();
+  const rows = db.prepare('SELECT id, email, name, role, created_at, trial_ends_at, free_forever FROM users ORDER BY created_at ASC').all();
   res.json(rows.map((r) => ({ ...r, access: access.getAccess(r) })));
+});
+
+// The owner makes one person free forever (up to 10 people), or takes it back.
+// Only the owner can grant it — never automatic. Tell Muse a name and she can
+// do it too, but the button below is the owner's own hand.
+app.post('/api/admin/users/:id/free', auth.requireOwner, (req, res) => {
+  const id = Number(req.params.id);
+  const row = db.prepare('SELECT id, name, role, free_forever FROM users WHERE id = ?').get(id);
+  if (!row) return res.status(404).json({ error: 'Account not found.' });
+  if (row.role === 'owner') return res.status(400).json({ error: 'The owner is already free forever.' });
+  if (row.free_forever) return res.json({ ok: true, message: row.name + ' is already free forever.' });
+  if (access.countChosen() >= access.MAX_CHOSEN) {
+    return res.status(400).json({ error: 'You have already made 10 people free. Take it back from someone first, then choose another.' });
+  }
+  db.prepare("UPDATE users SET free_forever = 1, plan = 'chosen' WHERE id = ?").run(id);
+  res.json({ ok: true, message: row.name + ' is now free forever, everything unlocked.' });
+});
+
+app.delete('/api/admin/users/:id/free', auth.requireOwner, (req, res) => {
+  const id = Number(req.params.id);
+  const row = db.prepare('SELECT id, name, role, free_forever FROM users WHERE id = ?').get(id);
+  if (!row) return res.status(404).json({ error: 'Account not found.' });
+  if (!row.free_forever) return res.json({ ok: true, message: row.name + ' was not free forever.' });
+  db.prepare("UPDATE users SET free_forever = 0, plan = 'trial' WHERE id = ?").run(id);
+  res.json({ ok: true, message: 'Free forever taken back from ' + row.name + '. Their 14-day trial rules apply again.' });
 });
 
 app.delete('/api/admin/users/:id', auth.requireOwner, (req, res) => {

@@ -1,5 +1,10 @@
 // HCI Studio — access tiers (the payment model).
 //   OWNER: free forever, everything unlocked. The owner never pays.
+//   CHOSEN: up to 10 people the owner picks himself are free forever,
+//           everything unlocked — anytime someone wins his heart, he makes
+//           it free for them. Never automatic, never first-come-first-served:
+//           only the owner can grant it, from the admin page (or by telling
+//           Muse). Stored as free_forever on the user row.
 //   TRIAL: other users get 14 days of FULL access from the day they register.
 //   BASIC: after the trial, deep thinking tools lock. Basic access stays free:
 //          learning pages, and simple chatting with HCI.
@@ -10,6 +15,13 @@
 const { db } = require('./db');
 
 const TRIAL_DAYS = 14;
+const MAX_CHOSEN = 10;
+
+// How many people the owner has made free so far (owner excluded).
+function countChosen() {
+  const row = db.prepare("SELECT COUNT(*) AS n FROM users WHERE free_forever = 1 AND role != 'owner'").get();
+  return row ? row.n : 0;
+}
 
 function trialEndsAtFor(userRow) {
   if (userRow.trial_ends_at) return userRow.trial_ends_at;
@@ -22,6 +34,9 @@ function getAccess(user) {
   if (!user) return { tier: 'guest', deepAllowed: false, trialEndsAt: null, daysLeft: 0, message: 'Please log in first.' };
   if (user.role === 'owner') {
     return { tier: 'owner', deepAllowed: true, trialEndsAt: null, daysLeft: null, message: 'Owner — free forever, everything unlocked.' };
+  }
+  if (user.free_forever) {
+    return { tier: 'chosen', deepAllowed: true, trialEndsAt: null, daysLeft: null, message: 'Chosen by the owner — free forever, everything unlocked.' };
   }
   const ends = trialEndsAtFor(user);
   const msLeft = new Date(ends).getTime() - Date.now();
@@ -43,4 +58,4 @@ function requireDeep(req, res, next) {
   });
 }
 
-module.exports = { TRIAL_DAYS, getAccess, requireDeep, trialEndsAtFor };
+module.exports = { TRIAL_DAYS, MAX_CHOSEN, countChosen, getAccess, requireDeep, trialEndsAtFor };

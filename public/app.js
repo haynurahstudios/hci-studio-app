@@ -59,7 +59,7 @@ function setNav(page) {
 }
 
 function needLogin() {
-  return `<div class="card"><h2>Log in first</h2><p>Create a free account or log in. New accounts get a <b>14-day free trial</b> with full access to everything. The owner is free forever.</p><p><a class="btn" href="#/auth">Log in / Sign up</a></p></div>`;
+  return `<div class="card"><h2>Log in first</h2><p>Create a free account or log in. The owner chooses up to 10 people to be free forever. After that, new accounts get a <b>14-day free trial</b> with full access to everything. The owner is free forever.</p><p><a class="btn" href="#/auth">Log in / Sign up</a></p></div>`;
 }
 
 function route() {
@@ -89,6 +89,7 @@ function accessCard() {
   const pay = S.status?.payment;
   let inner = '';
   if (a.tier === 'owner') inner = `<p><b>Owner — free forever, everything unlocked.</b> You never pay for your own use.</p>`;
+  else if (a.tier === 'chosen') inner = `<p><b>Chosen by the owner — free forever, everything unlocked.</b></p>`;
   else if (a.tier === 'trial') inner = `<p><b>Free trial — ${a.daysLeft} day${a.daysLeft === 1 ? '' : 's'} of full access left.</b></p><p class="muted">After the trial, deep thinking tools need a paid plan. ${esc(pay?.afterTrial || '')}</p>`;
   else inner = `<p><b>Basic access.</b> Your trial has ended. Deep tools are locked. ${esc(pay?.afterTrial || '')}</p>`;
   return `<div class="card"><h3>Your access</h3>${inner}</div>`;
@@ -392,10 +393,10 @@ async function vAdmin() {
   try { users = await api('/api/admin/users'); } catch (e) { return `<div class="notice warn">${esc(e.message)}</div>`; }
   try { usage = await api('/api/usage'); } catch (e) {}
   return `<h1>Owner — accounts</h1>
-  <p class="muted">You are the owner — free forever, everything unlocked. You can delete any account. The money from paying users comes to you: it pays the AI costs first, and the remainder is your earnings. Payments start after the test (natural option: Selar; alternatives: Stripe or Paystack).</p>
+  <p class="muted">You are the owner — free forever, everything unlocked. You can delete any account. You can also make up to 10 people free forever — anyone who wins your heart. The money from paying users comes to you: it pays the AI costs first, and the remainder is your earnings. Payments start after the test (natural option: Selar; alternatives: Stripe or Paystack).</p>
   <div class="card"><h3>All accounts (${users.length})</h3>
   <table><tr><th>Name</th><th>Email</th><th>Access</th><th>Trial ends</th><th></th></tr>
-  ${users.map((u) => `<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.access?.tier || u.role)}${u.access?.tier === 'trial' ? ` (${u.access.daysLeft}d left)` : ''}</td><td>${esc(u.trial_ends_at || '—')}</td><td>${u.id !== S.user.id ? `<button class="btn small danger" onclick="App.deleteUser(${u.id}, '${esc(u.name)}')">Delete</button>` : '<span class="muted">you</span>'}</td></tr>`).join('')}</table></div>
+  ${users.map((u) => `<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.access?.tier || u.role)}${u.access?.tier === 'trial' ? ` (${u.access.daysLeft}d left)` : ''}</td><td>${esc(u.trial_ends_at || '—')}</td><td>${u.id !== S.user.id ? `${u.access?.tier === 'chosen' ? `<button class="btn small ghost" onclick="App.setFree(${u.id}, '${esc(u.name)}', false)">Take back free</button>` : `<button class="btn small" onclick="App.setFree(${u.id}, '${esc(u.name)}', true)">Make free</button>`} <button class="btn small danger" onclick="App.deleteUser(${u.id}, '${esc(u.name)}')">Delete</button>` : '<span class="muted">you</span>'}</td></tr>`).join('')}</table></div>
   <div class="card"><h3>Usage today</h3><p>${usage ? usage.today.map((t) => `<span class="chip">${esc(t.kind)}: ${t.n}</span>`).join(' ') : '—'}</p></div>
   <div class="card"><h3>Withdraw the app</h3><p class="muted">Stops the server. Start it again with <b>npm start</b> to bring it back. Full removal is deleting the app folder.</p>
   <button class="btn danger" onclick="App.withdraw()">Withdraw HCI Studio</button></div>`;
@@ -405,7 +406,7 @@ async function vAuth() {
   if (S.user) return `<div class="card"><h2>You are logged in as ${esc(S.user.name)}</h2><p><a class="btn" href="#/studio">Open the Studio</a></p></div>`;
   return `<h1>Log in / Sign up</h1>
   <div class="card"><h3>Create a free account</h3>
-  <p class="muted">New accounts get a <b>14-day free trial</b> with full access to everything. After that, deep tools need a paid plan; basic access stays free. The first account ever created is the owner.</p>
+  <p class="muted">The owner chooses up to 10 people to be free forever. After that, new accounts get a <b>14-day free trial</b> with full access to everything. After the trial, deep tools need a paid plan; basic access stays free. The first account ever created is the owner.</p>
   <p class="muted">For the owner's students, anywhere in the world — no region restriction, no country blocking.</p>
   <label>Name</label><input id="regName" placeholder="Your name">
   <label>Email</label><input id="regEmail" type="email" placeholder="you@example.com">
@@ -598,6 +599,16 @@ window.App = {
   async deleteUser(id, name) {
     if (!confirm('Delete the account of ' + name + '? Their projects and keys go with it. This cannot be undone.')) return;
     try { await api('/api/admin/users/' + id, 'DELETE'); route(); } catch (e) { alert(e.message); }
+  },
+  async setFree(id, name, makeFree) {
+    if (makeFree) {
+      if (!confirm('Make it free forever for ' + name + '? They will never pay and never lock. You can choose up to 10 people.')) return;
+    } else if (!confirm('Take free forever back from ' + name + '? Their 14-day trial rules will apply again.')) return;
+    try {
+      const r = await api('/api/admin/users/' + id + '/free', makeFree ? 'POST' : 'DELETE');
+      alert(r.message || 'Done.');
+      route();
+    } catch (e) { alert(e.message); }
   },
   async withdraw() {
     if (!confirm('Withdraw HCI Studio? The server will stop. Start it again with npm start to bring it back.')) return;

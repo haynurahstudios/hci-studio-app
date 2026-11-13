@@ -114,6 +114,7 @@ Free offers change. If a provider stops its free tier, the app still works from 
 ## The payment model
 
 - **Owner: free forever, everything unlocked.** The owner never pays for his own use.
+- **Chosen by the owner: up to 10 people, free forever, everything unlocked.** Anytime someone wins his heart, he makes it free for them — from the admin page, or by telling Muse. Never automatic, never first-come-first-served.
 - **Other users: 14-day free trial, full access to everything.** The trial starts the day they register.
 - **After the trial:** deep thinking tools lock — live research, trend search, image creation, and the full step-by-step prompt studio. Users who do not pay keep **basic access**: the learning pages and simple chatting with HCI.
 - **Payments start after the test.** No payment provider is integrated now — the lock and the trial tracking are built, and the paywall is a clear placeholder. That comes after the test proves the app works.
@@ -152,7 +153,7 @@ hci_studio_app/
 ├── src/
 │   ├── db.js            # SQLite (node:sqlite) — users, sessions, projects, usage, images
 │   ├── auth.js          # scrypt passwords, sessions, owner checks
-│   ├── access.js        # trial / paywall / owner-free logic
+│   ├── access.js        # trial / paywall / owner-free / owner-chosen-free logic
 │   ├── limits.js        # free daily limits per person
 │   ├── userKeys.js      # per-user provider keys, encrypted (AES-256-GCM)
 │   ├── providers.js     # one brain layer: Claude / ChatGPT / Gemini / Groq / OpenRouter / Perplexity + images
