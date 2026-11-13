@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS user_keys (
 );
 `);
 
-const VALID_PROVIDERS = ['anthropic', 'openai', 'gemini', 'perplexity', 'tavily'];
+const VALID_PROVIDERS = ['anthropic', 'openai', 'gemini', 'perplexity', 'tavily', 'groq'];
 
 function setUserKey(userId, provider, key) {
   if (!VALID_PROVIDERS.includes(provider)) throw new Error('Unknown provider: ' + provider);

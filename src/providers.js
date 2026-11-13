@@ -4,6 +4,8 @@
 //   - Anthropic (Claude): the primary writing brain.
 //   - Perplexity: research — live search with sources.
 //   - OpenAI (ChatGPT) and Google (Gemini): additional minds.
+//   - Groq: an additional mind — fast open models (free tier, no card).
+//   - Tavily: live search, second option after Perplexity.
 // Keys come from env vars (the owner's keys) or from the user's own stored
 // keys (bring your own key — each user's thinking uses their own key and
 // their own free credits; the app itself charges nothing).
@@ -25,6 +27,7 @@ const KEY_ENV = {
   gemini: 'GEMINI_API_KEY',
   perplexity: 'PERPLEXITY_API_KEY',
   tavily: 'TAVILY_API_KEY',
+  groq: 'GROQ_API_KEY',
 };
 
 const PROVIDER_META = {
@@ -33,6 +36,7 @@ const PROVIDER_META = {
   gemini: { name: 'Gemini (Google)', role: 'Additional mind' },
   perplexity: { name: 'Perplexity', role: 'Research — live search with sources' },
   tavily: { name: 'Tavily', role: 'Live search (second option)' },
+  groq: { name: 'Groq', role: 'Additional mind · fast open models' },
 };
 
 function env(name) {
@@ -48,7 +52,7 @@ function keyFor(provider, userKeys) {
 
 function availableProviders(userKeys) {
   const list = [];
-  for (const id of ['anthropic', 'openai', 'gemini', 'perplexity']) {
+  for (const id of ['anthropic', 'openai', 'gemini', 'groq', 'perplexity']) {
     if (keyFor(id, userKeys)) {
       list.push({ id, name: PROVIDER_META[id].name, role: PROVIDER_META[id].role, mine: Boolean(userKeys && userKeys[id]) });
     }
@@ -134,6 +138,16 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000 } =
     );
     const text = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
     return { provider: 'gemini', model: 'gemini-2.5-flash', text };
+  }
+  // Groq: fast open models on an OpenAI-compatible endpoint.
+  // Free tier, no card. Model gpt-oss-120b (OpenAI's open-weight model).
+  if (keyFor('groq', userKeys)) {
+    const data = await fetchJson('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + keyFor('groq', userKeys) },
+      body: JSON.stringify({ model: 'openai/gpt-oss-120b', temperature, max_tokens: maxTokens, messages: [{ role: 'system', content: sys }, ...messages] }),
+    });
+    return { provider: 'groq', model: 'openai/gpt-oss-120b', text: data.choices?.[0]?.message?.content || '' };
   }
   if (keyFor('perplexity', userKeys)) {
     const data = await fetchJson('https://api.perplexity.ai/chat/completions', {
