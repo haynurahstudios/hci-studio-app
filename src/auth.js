@@ -33,7 +33,7 @@ function createSession(userId) {
 function getUserByToken(token) {
   if (!token) return null;
   const row = db.prepare(
-    `SELECT u.id, u.email, u.name, u.role, u.created_at, u.plan, u.trial_ends_at, u.free_forever, s.expires_at
+    `SELECT u.id, u.email, u.name, u.role, u.created_at, u.plan, u.trial_ends_at, u.free_forever, u.improve_ai, s.expires_at
      FROM sessions s JOIN users u ON u.id = s.user_id
      WHERE s.token = ? AND s.expires_at > datetime('now')`
   ).get(token);

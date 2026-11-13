@@ -79,6 +79,9 @@ for (const [col, def] of [
   ['plan', "TEXT NOT NULL DEFAULT 'trial'"],
   ['trial_ends_at', 'TEXT'],
   ['free_forever', 'INTEGER NOT NULL DEFAULT 0'],
+  // Privacy: "use my chats to improve the AI" — ON by default for everyone.
+  // The person can turn it off anytime from Settings.
+  ['improve_ai', 'INTEGER NOT NULL DEFAULT 1'],
 ]) {
   try { db.exec(`ALTER TABLE users ADD COLUMN ${col} ${def};`); } catch (_) { /* already there */ }
 }

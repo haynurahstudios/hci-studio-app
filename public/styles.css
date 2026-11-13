@@ -60,3 +60,14 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:22px 16px 40px;t
 .score.strong{background:#1E4D2B;color:#9BE2A8}.score.adequate{background:#4D3F1E;color:#F0D9A8}.score.weak{background:#4D1E1E;color:#F0A8A8}
 .bar{height:8px;background:var(--navy3);border-radius:99px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--gold)}
+
+/* Chatbot — roomy, never choked: big bubbles, breathing space, a big input. */
+.chat-card{padding:22px}
+.chat-tabs{display:flex;gap:10px;margin:12px 0 16px;flex-wrap:wrap}
+.chat-tabs .pill{padding:10px 20px;font-size:.98rem}
+.chatlog{display:flex;flex-direction:column;margin:8px 0 16px}
+.chat-msg{padding:16px 18px;border-radius:18px;line-height:1.7;margin:8px 0;max-width:100%}
+.chat-msg.you{background:var(--navy3);border:1px solid var(--line);align-self:flex-end;margin-left:32px}
+.chat-msg.hci{background:rgba(217,179,106,.08);border:1px solid var(--gold);align-self:flex-start;margin-right:32px}
+.chat-msg pre.prompt{margin:12px 0}
+.chat-input{font-size:1.05rem;padding:16px;min-height:60px;line-height:1.6}

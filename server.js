@@ -76,14 +76,14 @@ app.get('/api/status', (req, res) => {
       owner: 'Free forever, everything unlocked.',
       chosen: 'The owner chooses up to 10 people to be free forever, everything unlocked. Anytime someone wins his heart, he makes it free for them.',
       trial: '14 days free, full access to everything.',
-      afterTrial: 'Deep thinking tools (live research, trend search, image creation, the full step-by-step prompt studio) need a paid plan. Payments start after the test — no payment provider is integrated yet. Users who do not pay keep basic access: the learning pages and simple chatting with HCI.',
+      afterTrial: 'After the 14 days, you still get 2 free guided uses a week. After those 2, deep thinking tools (the chatbot, live research, trend search, image creation, the full step-by-step prompt studio) need a paid plan. Payments start after the test — no payment provider is integrated yet. Users who do not pay keep basic access: the learning pages. The learning pages stay free forever and never count.',
       moneyFlow: 'When users pay, the money goes to the owner. He is the builder and creator, so he earns from it: subscription payments come to him, the AI thinking costs are paid out of that revenue, and the remainder is his earnings. The app never takes payments for itself and never routes them anywhere except the owner’s account. Natural option: Selar (he already sells his lessons through Selar, in Naira and dollars). Alternatives: Stripe or Paystack. The final provider choice is his, after the test.',
       note: 'This model exists so the cost does not fall on the owner: paying users cover the AI costs, the owner stays free.',
     },
     limits: req.user ? limits.usageSummary(req.user.id) : null,
     knowledgeLoaded: Array.isArray(k.styles) && k.styles.length > 0,
     video: { available: false, note: 'Video generation is paused — it needs a server or a heavy device. The studio hands you a production-ready prompt for Kling, Flow or Creen AI instead.' },
-    user: req.user ? { id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role } : null,
+    user: req.user ? { id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role, improveAi: req.user.improve_ai !== 0 } : null,
   });
 });
 
@@ -129,7 +129,16 @@ app.post('/api/auth/logout', (req, res) => {
 
 app.get('/api/auth/me', (req, res) => {
   if (!req.user) return res.json({ user: null });
-  res.json({ user: { id: req.user.id, email: req.user.email, name: req.user.name, role: req.user.role } });
+  res.json({ user: { id: req.user.id, email: req.user.email, name: req.user.name, role: req.user.role, improveAi: req.user.improve_ai !== 0 } });
+});
+
+// ---------- Privacy: "use my chats to improve the AI" ----------
+// ON by default for everyone (the owner set it so). The person can turn
+// it off anytime from Settings; the choice is stored on their account.
+app.post('/api/settings/privacy', auth.requireLogin, (req, res) => {
+  const on = req.body?.improveAi !== false && req.body?.improveAi !== 0 && req.body?.improveAi !== 'false';
+  db.prepare('UPDATE users SET improve_ai = ? WHERE id = ?').run(on ? 1 : 0, req.user.id);
+  res.json({ ok: true, improveAi: on });
 });
 
 // ---------- My provider keys (bring your own key) ----------
@@ -269,9 +278,35 @@ app.get('/api/muse/greeting', auth.requireLogin, (req, res) => {
   res.json({ greeting: muse.museGreeting(req.user) });
 });
 
-// ---------- Basic chatting with Muse (stays free for everyone, including basic tier) ----------
-// Simple questions and short answers. Deep thinking tools are separate.
+// ---------- The chatbot: two spaces (Workspace + Friendly chat) ----------
+// The app IS a chatbot. The chat is the main way to use the studio —
+// normal conversation, no clicking through forms. The brain carries the
+// conversation history so it remembers what was said. Workspace walks
+// the person from an idea to the whole prompts; Friendly is just talking.
+// Basic users (trial ended) get 2 free guided uses a week across both
+// spaces; owner, chosen and trial users are unlimited.
+function toolListText() {
+  try {
+    const k = knowledge();
+    return (k.tools || [])
+      .filter((t) => t.name !== 'Sora')
+      .map((t) => `${t.name} (${t.kind}) — ${(t.price || '').slice(0, 110)}`)
+      .join('; ');
+  } catch (_) { return ''; }
+}
+function styleListText() {
+  try {
+    const k = knowledge();
+    return (k.styles || []).map((s) => s.name).filter(Boolean).join(', ');
+  } catch (_) { return ''; }
+}
+
 app.post('/api/chat', auth.requireLogin, async (req, res) => {
+  const mode = req.body?.mode === 'friendly' ? 'friendly' : 'work';
+  const acc = access.getAccess(req.user);
+  if (acc.tier === 'basic' && !acc.deepAllowed) {
+    return res.status(402).json({ error: 'Your 2 free times this week are used up.', paywall: true, message: acc.message });
+  }
   const over = limits.checkLimit(req.user, 'chat');
   if (over) return res.status(429).json({ error: over.message });
   const keys = userKeysFor(req);
@@ -282,14 +317,17 @@ app.post('/api/chat', auth.requireLogin, async (req, res) => {
   }
   const message = String(req.body?.message || '').trim();
   if (!message) return res.status(400).json({ error: 'Write a message first.' });
+  const history = Array.isArray(req.body?.history)
+    ? req.body.history.slice(-10).filter((m) => m && typeof m.content === 'string' && (m.role === 'user' || m.role === 'assistant')).map((m) => ({ role: m.role, content: m.content.slice(0, 1500) }))
+    : [];
   try {
     const out = await providers.think(
-      [{ role: 'user', content: message }],
-      { system: muse.museSystemPrompt(req.user), temperature: 0.7, maxTokens: 800 },
+      [...history, { role: 'user', content: message }],
+      { system: muse.chatSystemPrompt(req.user, mode, toolListText(), styleListText()), temperature: 0.7, maxTokens: 1200 },
       keys
     );
     logUsage(req.user.id, 'chat', out.provider, out.model, message.slice(0, 80), true);
-    res.json({ reply: out.text, provider: out.provider, assistant: 'Muse' });
+    res.json({ reply: out.text, provider: out.provider, assistant: 'Muse', mode });
   } catch (e) {
     console.error('chat failed:', String(e.message).slice(0, 300));
     logUsage(req.user.id, 'chat', '', '', String(e.message).slice(0, 200), false);

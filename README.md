@@ -4,7 +4,7 @@
 
 > Made by Haynurah, the founder of Haynurah Studios.
 
-HCI Studio is an **independent web app** that helps people write production-ready AI video prompts, step by step. Its main aim is helping people write prompts. It is **not** a Muse artifact, **not** a Muse space, and it does not run on Muse. It is its own app, named HCI, with its own code, its own hosting, and its own AI access.
+HCI Studio is an **independent web app** that helps people write production-ready AI video prompts. Its main aim is helping people write prompts. **The main way to use it is the chatbot:** you open it and just chat with Muse, like ChatGPT — she walks you from an idea to the whole prompts in normal conversation. It is **not** a Muse artifact, **not** a Muse space, and it does not run on Muse. It is its own app, named HCI, with its own code, its own hosting, and its own AI access.
 
 ---
 
@@ -33,7 +33,8 @@ The window is computed in the Africa/Lagos timezone, never in the server's local
 
 ## What it does
 
-1. **Thinks for itself.** When a student has no idea, the studio searches the live web for what is trending right now (live research with sources shown, Perplexity-style) and turns it into three fresh, original directions — with profile scores, a recommendation and a strongest alternative. No pre-written list of ideas.
+1. **It is a chatbot — the main way in.** Two spaces on the Home page: **Workspace** (Muse greets you with "Hi, what idea do you want to bring to life today?", asks whether you have an idea, turns it into a script, tells you which style fits it best, walks you through the characters, asks what AI tool you want to use — listing the free and paid tools, how to access them, and giving you go-ahead prompts matched to the one you choose — and gives you the WHOLE prompts at the end) and **Friendly chat** (just talking about your day). Everything happens in the chat — no clicking through forms. The chatbot is not limited to video prompts: it can help with anything, research live, and find skills online. The chat is roomy and spacious, never cramped.
+2. **Thinks for itself.** When a student has no idea, the studio searches the live web for what is trending right now (live research with sources shown, Perplexity-style) and turns it into three fresh, original directions — with profile scores, a recommendation and a strongest alternative. No pre-written list of ideas.
 2. **Asks which platform first.** Kling 4.0, Google Flow, Runway Gen-4.5, Pika 2.5, Luma Ray 3.2, Midjourney V8 Video, Seedance 2.5, CapCut, Creen AI, Meta AI (Vibes) — the studio asks which platform the person is making for, and shapes every prompt for that platform (clip length, audio or silent, what that tool can and cannot do). **And "Other":** if the platform is not in the list, the person picks Other and types any platform name — there is no limit. The prompt is shaped with general rules and tells them to verify clip length, audio and price on that platform before spending.
 3. **Walks step by step, locked in order — and the studio leads.** (1) Character — exact-word lock. (2) Props — prop lock in exact words. (3) The world — environment and the whole world of the story. (4) Scenes and action sequences — actions in order, visible and timed. (5) The video prompt — joining everything into one production-ready, copy-ready prompt: shot size, camera angle, camera movement, subject and action, lens and depth of field, lighting, composition, colour mood, visual style, behaviour, continuity lock. No drafts, no placeholders. No step is skipped. **The studio leads:** once the idea is pasted, the brain suggests the next step and asks the next question — it suggests the character, asks how the environment should be, and brings options for props, the world and the scenes. The student only picks, edits, or says yes; nothing has to be brought from scratch.
 4. **Teaches the full craft.** All twenty visual styles (when to use / when to avoid) plus the mixing rule (one style leads, one supports, the mix must have a reason) — and beyond the twenty: all shot sizes, camera angles, camera movements, lens and depth of field, lighting, composition, colour grading and mood, the twelve animation principles, directing, story structure, and human behaviour and emotion.
@@ -65,14 +66,16 @@ Each user may add **their own key** (Settings → My own keys). Their thinking t
 
 **One bad key never stops the brain.** If a provider fails — wrong key, no credit left, busy — the brain tries the next provider instead of failing the whole call. The same goes for trending search: if Perplexity or Tavily fails, the app falls back to the public search, then to the live brain itself. (DuckDuckGo's public page blocks the app's server requests, so that middle step often finds nothing — the brain fallback is what actually saves it.)
 
-## Muse, the in-app assistant
+## The chatbot — the main way to use the app
 
-A version of Muse lives **inside** the app — the owner's own assistant, named **Muse**. She speaks and helps the way Muse does: warm, direct, plain words, encouraging, honest about what she does not know and what she cannot do, never pretending — and she teaches instead of just handing over answers.
+The app IS a chatbot. You open it and just chat with Muse, like ChatGPT — normal conversation, no clicking through forms. The chat is on the Home page, in two spaces:
 
-- She **calls the owner "love"**, the way she does with him, and treats his students with the same warmth.
-- She **guides the student through the step-by-step flow** — a Muse tip at every step of the Studio (built-in knowledge, needs no key).
-- She **answers questions** (Ask Muse on the Home page and inside the Studio) and **helps with prompts**.
-- When the live brain is on, she answers live. When no key is set, she says so plainly instead of pretending.
+- **Workspace** — the creative work. Muse greets you with "Hi, what idea do you want to bring to life today?", asks whether you have an idea or not (and offers several if you don't), turns your idea into a script, tells you which style fits it best, walks you through the characters ("Should I generate the character, or give you the prompts?" — you decide), asks what AI tool you want to use (and lists the free and paid tools, how to access them, and gives you go-ahead prompts matched to the one you choose), and at the end gives you the WHOLE prompts. Ordinary ideas become extraordinary ones, in conversation.
+- **Friendly chat** — just talking about your day with somebody. No agenda, no lessons unless you ask.
+
+The chatbot is not limited to video prompts or to one skill: it can help with anything, research live, and find skills online. The chat is roomy and spacious, never cramped. The step-by-step Studio form is still there as another way to build a prompt. Settings (including your own keys and Privacy) and accounts/login are on their own pages.
+
+**Privacy:** Settings has "Use my chats to improve the AI" — it is ON by default for everyone, and anyone can turn it off anytime; the choice is stored on their account.
 
 ## Quick start (run it on your own computer)
 
@@ -113,14 +116,14 @@ Free offers change. If a provider stops its free tier, the app still works from 
 | Image creation | 5 |
 | Simple chatting | 5 |
 
-The owner is exempt from these daily limits — he is free forever with everything unlocked, and the limits exist to protect the shared free credits from other users, not to lock the owner out of his own app. (Students still have the limits above.)
+The owner, the chosen ten, and anyone inside their 14-day trial are exempt from these daily limits — the trial is unlimited, as the owner promised. (Students outside their trial still have the daily limits above, and the weekly rule below binds first.)
 
 ## The payment model
 
 - **Owner: free forever, everything unlocked.** The owner never pays for his own use.
 - **Chosen by the owner: up to 10 people, free forever, everything unlocked.** Anytime someone wins his heart, he makes it free for them — from the admin page, or by telling Muse. Never automatic, never first-come-first-served.
-- **Other users: 14-day free trial, full access to everything.** The trial starts the day they register.
-- **After the trial:** deep thinking tools lock — live research, trend search, image creation, and the full step-by-step prompt studio. Users who do not pay keep **basic access**: the learning pages and simple chatting with HCI.
+- **Other users: 14-day free trial, UNLIMITED, full access to everything.** The trial starts the day they register.
+- **After the trial:** you still get **2 free guided uses a week** — one live brain call of any kind (chat, thinking, research, trend search, image). After those 2, deep thinking tools need a paid plan. Users who do not pay keep **basic access**: the learning pages, which stay free forever and never count.
 - **Payments start after the test.** No payment provider is integrated now — the lock and the trial tracking are built, and the paywall is a clear placeholder. That comes after the test proves the app works.
 
 ### The money flow
@@ -202,7 +205,7 @@ hci_studio_app/
 
 - **"The live brain needs a key"** — no provider key is set (server `.env` or your own key in Settings). Add one, or use the studio from its built-in knowledge.
 - **"Free limit reached for today"** — the daily per-person limit for that use. It resets tomorrow.
-- **"Your 14-day free trial has ended"** — deep tools are locked. Basic access still works. Payments start after the test.
+- **"Your 2 free times this week are used up"** — deep tools need a paid plan, or wait until next week. Basic access still works. Payments start after the test.
 - **Server won't start** — check Node version (`node --version`, needs 22+), then `npm install`, then check `.env` has no broken lines.
 - **Images fail** — image creation needs an OpenAI key. Check the key in Settings, and check the provider's own status page.
 

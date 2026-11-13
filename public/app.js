@@ -4,7 +4,7 @@ const S = {
   status: null, knowledge: null, tutorials: [], platforms: [],
   user: null, access: null,
   studio: { step: 0, platform: '', platformOther: '', idea: '', character: '', props: '', world: '', scenes: [''], style: '', styleSupport: '', mixReason: '', shotSize: 'Medium shot', angle: 'Eye level', movement: 'Static', lens: '', lighting: '', composition: '', colourMood: '', behaviour: '', duration: '', prompt: null, imageUrl: null },
-  trends: null, directions: null, suggest: null, suggestKey: '', suggestBusy: '', chatLog: [], museChat: [], greeting: '', sites: [], websiteDraft: null, websiteSections: [{ heading: '', text: '' }],
+  trends: null, directions: null, suggest: null, suggestKey: '', suggestBusy: '', chatLog: [], friendlyLog: [], chatSpace: 'work', museChat: [], greeting: '', sites: [], websiteDraft: null, websiteSections: [{ heading: '', text: '' }],
 };
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -95,6 +95,31 @@ function accessCard() {
   return `<div class="card"><h3>Your access</h3>${inner}</div>`;
 }
 
+// ---------------- Chat: two spaces ----------------
+// The app IS a chatbot. Workspace walks the person from an idea to the
+// whole prompts; Friendly is just talking about your day. Both share the
+// same brain and the same history-aware chat endpoint. Messages render
+// spacious, never choked: roomy bubbles, and finished prompts in a
+// copyable block.
+function renderChatText(text) {
+  const parts = String(text || '').split(/```/);
+  return parts.map((part, i) => {
+    if (i % 2 === 1) return `<pre class="prompt">${esc(part.replace(/^\w+\n/, ''))}</pre><button class="btn small ghost" onclick="if(navigator.clipboard){navigator.clipboard.writeText(this.previousElementSibling.innerText).then(()=>alert('Copied.'));}else{alert('Select the text above to copy it.');}">Copy</button>`;
+    return esc(part).replace(/\n/g, '<br>');
+  }).join('');
+}
+function chatLogHtml() {
+  const space = S.chatSpace;
+  const log = space === 'friendly' ? S.friendlyLog : S.chatLog;
+  if (!log.length) {
+    const greet = space === 'friendly'
+      ? 'Hi, I’m here. Tell me about your day.'
+      : 'Hi, what idea do you want to bring to life today?';
+    return `<div class="chat-msg hci"><b>Muse:</b> ${esc(greet)}</div>`;
+  }
+  return log.map((m) => `<div class="chat-msg ${m.who === 'you' ? 'you' : 'hci'}"><b>${m.who === 'you' ? 'You' : 'Muse'}:</b> ${renderChatText(m.text)}</div>`).join('');
+}
+
 async function vHome() {
   const k = S.knowledge;
   return `
@@ -108,12 +133,13 @@ async function vHome() {
   ${accessCard()}
   ${brainCard()}
   ${S.greeting ? `<div class="card gold"><h3>Muse says</h3><p>${esc(S.greeting)}</p></div>` : ''}
-  <div class="card"><h3>Ask Muse — your assistant (free for everyone)</h3>
-    <p class="muted">Muse lives inside the studio with you. She guides you step by step, answers questions, and helps with prompts — warm, direct, plain words, honest about what she does not know.</p>
-    <div id="chatLog">${S.chatLog.map((m) => `<p><b>${m.who === 'you' ? 'You' : 'Muse'}:</b> ${esc(m.text)}</p>`).join('')}</div>
-    <input id="chatInput" placeholder="Ask anything about video, prompts, cinematography…" onkeydown="if(event.key==='Enter')App.chat()">
-    <button class="btn" onclick="App.chat()">Ask</button>
-    <p class="muted">Simple chatting stays free. Deep tools — live research, trend search, image creation and the full studio — need the trial or a plan.</p>
+  <div class="card chat-card"><h3>Chat with Muse</h3>
+    <p class="muted">Talk to Muse like you talk to ChatGPT — just chat, no clicking through forms. Two spaces: <b>Workspace</b> turns your idea into the whole prompts; <b>Friendly chat</b> is for talking about your day.</p>
+    <div class="chat-tabs"><button class="pill ${S.chatSpace === 'work' ? 'on' : ''}" onclick="App.setSpace('work')">💼 Workspace</button><button class="pill ${S.chatSpace === 'friendly' ? 'on' : ''}" onclick="App.setSpace('friendly')">💬 Friendly chat</button></div>
+    <div id="chatLog" class="chatlog">${chatLogHtml()}</div>
+    <textarea id="chatInput" class="chat-input" rows="2" placeholder="${S.chatSpace === 'work' ? 'Tell Muse your idea…' : 'How was your day?'}" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.chat();}"></textarea>
+    <button class="btn" onclick="App.chat()">Send</button>
+    <p class="muted">${S.access ? esc(S.access.message || '') : 'Log in to chat.'} ${S.access && S.access.tier === 'basic' ? 'The learning pages stay free.' : ''}</p>
   </div>
   <div class="card"><h3>What the Studio does</h3>
     <p>1. It thinks for itself — it searches what is trending right now and turns it into fresh directions.<br>
@@ -416,6 +442,10 @@ async function vSettings() {
   <div class="card"><h3>My usage today (free limits)</h3>
   ${usage ? Object.entries(usage).map(([k, v]) => `<p><b>${esc(k)}:</b> ${v.used} of ${v.limit} used — ${v.remaining} left today</p>`).join('') : '<p class="muted">Could not load usage.</p>'}
   <p class="muted">Tight daily limits per person keep the free credits lasting. The app itself charges nothing.</p></div>
+  <div class="card"><h3>Privacy</h3>
+  <p><label style="font-weight:400"><input type="checkbox" id="privacyToggle" ${S.user && S.user.improveAi === false ? '' : 'checked'} onchange="App.setPrivacy(this.checked)"> Use my chats to improve the AI</label></p>
+  <p class="muted">This is on by default. Your chats may be used to make the AI better. You can turn it off anytime — it stays off until you turn it back on.</p>
+  <div id="privacyMsg"></div></div>
   <div class="card"><h3>About</h3><p>${CREDIT}</p><p class="muted">HCI Studio is an independent app. It runs under no single AI company — it borrows thinking through provider keys.</p></div>`;
 }
 
@@ -439,7 +469,7 @@ async function vAuth() {
   if (S.user) return `<div class="card"><h2>You are logged in as ${esc(S.user.name)}</h2><p><a class="btn" href="#/studio">Open the Studio</a></p></div>`;
   return `<h1>Log in / Sign up</h1>
   <div class="card"><h3>Create a free account</h3>
-  <p class="muted">The owner chooses up to 10 people to be free forever. After that, new accounts get a <b>14-day free trial</b> with full access to everything. After the trial, deep tools need a paid plan; basic access stays free. The first account ever created is the owner.</p>
+  <p class="muted">The owner chooses up to 10 people to be free forever. After that, new accounts get a <b>14-day free trial</b>, unlimited, with full access to everything. After the trial, you still get 2 free times a week. The first account ever created is the owner.</p>
   <p class="muted">For the owner's students, anywhere in the world — no region restriction, no country blocking.</p>
   <label>Name</label><input id="regName" placeholder="Your name">
   <label>Email</label><input id="regEmail" type="email" placeholder="you@example.com">
@@ -473,14 +503,26 @@ window.App = {
     const input = $('#chatInput');
     const text = input.value.trim();
     if (!text) return;
-    S.chatLog.push({ who: 'you', text }); input.value = '';
-    S.chatLog.push({ who: 'hci', text: 'Thinking…' });
+    const space = S.chatSpace;
+    const log = space === 'friendly' ? S.friendlyLog : S.chatLog;
+    log.push({ who: 'you', text }); input.value = '';
+    log.push({ who: 'hci', text: 'Thinking…' });
     route();
     try {
-      const r = await api('/api/chat', 'POST', { message: text });
-      S.chatLog[S.chatLog.length - 1] = { who: 'hci', text: r.reply };
-    } catch (e) { S.chatLog[S.chatLog.length - 1] = { who: 'hci', text: e.message }; }
+      const history = log.slice(0, -1).slice(-10).map((m) => ({ role: m.who === 'you' ? 'user' : 'assistant', content: m.text }));
+      const r = await api('/api/chat', 'POST', { message: text, mode: space, history });
+      log[log.length - 1] = { who: 'hci', text: r.reply };
+    } catch (e) { log[log.length - 1] = { who: 'hci', text: e.paywall ? (e.data?.message || e.message) : e.message }; }
     route();
+  },
+  setSpace(space) { S.chatSpace = space; route(); },
+  async setPrivacy(on) {
+    const msg = $('#privacyMsg');
+    try {
+      const r = await api('/api/settings/privacy', 'POST', { improveAi: on });
+      if (S.user) S.user.improveAi = r.improveAi;
+      if (msg) msg.innerHTML = `<p class="ok">${r.improveAi ? 'On — your chats may be used to improve the AI.' : 'Off — your chats will not be used to improve the AI.'}</p>`;
+    } catch (e) { if (msg) msg.innerHTML = `<p class="bad">${esc(e.message)}</p>`; }
   },
   setPlatform(id) {
     S.studio.platform = id;
