@@ -122,33 +122,43 @@ function chatLogHtml() {
   return log.map((m) => `<div class="chat-msg ${m.who === 'you' ? 'you' : 'hci'}"><b>${m.who === 'you' ? 'You' : 'Muse'}:</b> ${renderChatText(m.text)}${m.failed ? `<p><button class="btn small" onclick="App.retryChat()">Try again</button></p>` : ''}</div>`).join('');
 }
 
+// ---------------- Chat: the chatbot card ----------------
+// The long talk belongs BEFORE logging in. Once a person is logged in,
+// the Home is just the chatbot — no hero, no explanations, no cards.
+// Guests see the explanation (hero, brain, what it does, the craft) and
+// a way in; they get the chat only after they log in.
+function chatCardHtml() {
+  const loggedIn = !!S.user;
+  return `<div class="card chat-card"><h3>Chat with Muse</h3>
+    <div class="chat-tabs"><button class="pill ${S.chatSpace === 'work' ? 'on' : ''}" onclick="App.setSpace('work')">\u{1F4BC} Workspace</button><button class="pill ${S.chatSpace === 'friendly' ? 'on' : ''}" onclick="App.setSpace('friendly')">\u{1F4AC} Friendly chat</button></div>
+    <div id="chatLog" class="chatlog">${chatLogHtml()}</div>
+    ${loggedIn
+      ? `<textarea id="chatInput" class="chat-input" rows="2" placeholder="${S.chatSpace === 'work' ? 'Tell Muse your idea\u2026' : 'How was your day?'}" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.chat();}"></textarea>
+    <button class="btn" onclick="App.chat()">Send</button>
+    <p class="muted">${S.access ? esc(S.access.message || '') : ''}</p>`
+      : `<p><a class="btn" href="#/auth">Log in / Sign up to chat</a></p>`}
+  </div>`;
+}
+
 async function vHome() {
+  if (S.user) return chatCardHtml();
   const k = S.knowledge;
   return `
   <div class="hero"><img src="/logo.png" alt="HCI logo">
     <h1>Haynurah Creative Intelligence</h1>
     <div class="tag">IMAGINE WITHOUT LIMITS.<br>RESEARCH WITH INTELLIGENCE.<br>CREATE WITH DIRECTION.</div>
-    <p style="margin-top:14px">HCI exists for the students of Haynurah Studios Academy, who will not read everything. It teaches in plain words — it explains, answers, directs and writes your prompts for you.</p>
-    <p><b>The ruling of this house, above everything else: decency only.</b> Every description decent, every person dressed decently and modestly — always.</p>
-    <p><a class="btn ghost" href="#/learn">Learn cinematography</a></p>
+    <p style="margin-top:14px">HCI exists for the students of Haynurah Studios Academy, who will not read everything. It teaches in plain words \u2014 it explains, answers, directs and writes your prompts for you.</p>
+    <p><b>The ruling of this house, above everything else: decency only.</b> Every description decent, every person dressed decently and modestly \u2014 always.</p>
+    <p><a class="btn" href="#/auth">Log in / Sign up</a> <a class="btn ghost" href="#/learn">Learn cinematography</a></p>
   </div>
-  ${accessCard()}
   ${brainCard()}
-  ${S.greeting ? `<div class="card gold"><h3>Muse says</h3><p>${esc(S.greeting)}</p></div>` : ''}
-  <div class="card chat-card"><h3>Chat with Muse</h3>
-    <p class="muted">Talk to Muse like you talk to ChatGPT — just chat, no clicking through forms. Two spaces: <b>Workspace</b> turns your idea into the whole prompts; <b>Friendly chat</b> is for talking about your day.</p>
-    <div class="chat-tabs"><button class="pill ${S.chatSpace === 'work' ? 'on' : ''}" onclick="App.setSpace('work')">💼 Workspace</button><button class="pill ${S.chatSpace === 'friendly' ? 'on' : ''}" onclick="App.setSpace('friendly')">💬 Friendly chat</button></div>
-    <div id="chatLog" class="chatlog">${chatLogHtml()}</div>
-    <textarea id="chatInput" class="chat-input" rows="2" placeholder="${S.chatSpace === 'work' ? 'Tell Muse your idea…' : 'How was your day?'}" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.chat();}"></textarea>
-    <button class="btn" onclick="App.chat()">Send</button>
-    <p class="muted">${S.access ? esc(S.access.message || '') : 'Log in to chat.'} ${S.access && S.access.tier === 'basic' ? 'The learning pages stay free.' : ''}</p>
-  </div>
+  ${chatCardHtml()}
   <div class="card"><h3>What the chatbot does</h3>
-    <p>1. It thinks for itself — it searches what is trending right now and turns it into fresh directions.<br>
+    <p>1. It thinks for itself \u2014 it searches what is trending right now and turns it into fresh directions.<br>
     2. It asks which platform you are making for, and shapes every prompt for that platform.<br>
     3. It walks you through the idea in conversation: script, style, character, the AI tool to use, then the whole prompts.<br>
-    4. It teaches you everything for cinematography and AI video creation — styles, angles, light, colour, behaviour, directing.</p>
-    <p class="muted">Video generation is paused — it needs a server or a heavy device. The chatbot hands you a production-ready prompt for Kling, Flow or Creen AI instead, and says so plainly.</p>
+    4. It teaches you everything for cinematography and AI video creation \u2014 styles, angles, light, colour, behaviour, directing.</p>
+    <p class="muted">Video generation is paused \u2014 it needs a server or a heavy device. The chatbot hands you a production-ready prompt for Kling, Flow or Creen AI instead, and says so plainly.</p>
   </div>
   ${k ? `<div class="card"><h3>The craft, in one line each</h3><p><b>Cinematography formula:</b> ${esc(k.cinematographyFormula || '')}</p><p><b>Director's formula:</b> ${esc(k.directorsFormula || '')}</p></div>` : ''}`;
 }
