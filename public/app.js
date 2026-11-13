@@ -4,7 +4,7 @@ const S = {
   status: null, knowledge: null, tutorials: [], platforms: [],
   user: null, access: null,
   studio: { step: 0, platform: '', platformOther: '', idea: '', character: '', props: '', world: '', scenes: [''], style: '', styleSupport: '', mixReason: '', shotSize: 'Medium shot', angle: 'Eye level', movement: 'Static', lens: '', lighting: '', composition: '', colourMood: '', behaviour: '', duration: '', prompt: null, imageUrl: null },
-  trends: null, directions: null, chatLog: [], museChat: [], greeting: '', sites: [], websiteDraft: null, websiteSections: [{ heading: '', text: '' }],
+  trends: null, directions: null, suggest: null, suggestKey: '', suggestBusy: '', chatLog: [], museChat: [], greeting: '', sites: [], websiteDraft: null, websiteSections: [{ heading: '', text: '' }],
 };
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -137,6 +137,21 @@ function stepDone(i) {
   if (i === 5) return d.scenes.some((s) => s.trim());
   return !!d.prompt;
 }
+// Guided Studio: the studio leads. The card above each step's field asks
+// the brain to suggest that step from the idea — the student only picks,
+// edits, or says yes. The suggestion is stored in S.suggest so it survives
+// re-renders; S.suggestKey stops the auto-suggest from firing twice.
+function guideHtml(step) {
+  const s = S.suggest;
+  const busy = S.suggestBusy === step;
+  let inner = '';
+  if (s && s.step === step && !busy) {
+    if (s.raw) inner = `<div class="card"><h3>${esc(s.question || 'The studio suggests')}</h3><pre class="prompt">${esc(s.raw)}</pre></div>`;
+    else inner = `<div class="card"><h3>${esc(s.question || 'The studio suggests')}</h3>${(s.suggestions || []).map((g, i) => `<div style="border-top:1px solid var(--line);padding-top:10px"><b>${esc(g.title || '')}</b><p>${esc(g.text || '')}</p>${g.why ? `<p class="muted">${esc(g.why)}</p>` : ''}<button class="btn small" onclick="App.useSuggestion(${i})">Use this</button></div>`).join('')}<p><button class="btn ghost" onclick="App.suggest('${step}')">Try another suggestion</button></p></div>`;
+  }
+  return `<div class="card gold"><h3>Let the studio lead</h3><p class="muted">You do not have to bring everything. The studio suggests this step for you — pick one, edit it, or say yes.</p><button class="btn" onclick="App.suggest('${step}')">${busy ? 'Thinking…' : '✨ Suggest for me'}</button><div id="suggestBox">${busy ? '<p class="muted">The studio is thinking…</p>' : inner}</div></div>`;
+}
+
 function renderStudioStep() {
   const holder = $('#studioSteps');
   if (!holder) return;
@@ -163,21 +178,25 @@ function renderStudioStep() {
   } else if (d.step === 2) {
     html = `<h3>Step 3 — Character (locked in exact words)</h3>
     <p class="muted">Describe the character exactly — face, hair, outfit, accessories, skin tone. The exact same face, hair, outfit, accessories and skin tone in every shot.</p>
+    ${guideHtml('character')}
     <label>Character lock</label><textarea id="fCharacter" placeholder="e.g. Amina, a market woman in her forties, warm medium-brown skin, dark brown eyes, a deep teal hijab covering her hair, ears, neck and chest, a loose long charcoal-grey dress with thin gold trim at the cuffs, a small brass key on a cord around her neck">${esc(d.character)}</textarea>
     <button class="btn" onclick="App.nextStep(2,'character','fCharacter')">Lock character →</button>`;
   } else if (d.step === 3) {
     html = `<h3>Step 4 — Props (locked in exact words)</h3>
     <p class="muted">A prop lock gets the same treatment as a character: the same object in every shot.</p>
+    ${guideHtml('props')}
     <label>Prop lock</label><textarea id="fProps" placeholder="e.g. A small brass oil lamp with a cloth-wrapped handle, warm amber glass, the same lamp in every shot">${esc(d.props)}</textarea>
     <button class="btn" onclick="App.nextStep(3,'props','fProps')">Lock props →</button>`;
   } else if (d.step === 4) {
     html = `<h3>Step 5 — The world</h3>
     <p class="muted">The environment and the whole world of the story.</p>
+    ${guideHtml('world')}
     <label>The world</label><textarea id="fWorld" placeholder="e.g. A busy night market at dusk, stalls lit by warm lamps, smoke and spice in the air, crowds moving slowly">${esc(d.world)}</textarea>
     <button class="btn" onclick="App.nextStep(4,'world','fWorld')">Lock the world →</button>`;
   } else if (d.step === 5) {
     html = `<h3>Step 6 — Scenes and action sequences</h3>
     <p class="muted">The actions in order — visible and timed. One line per action.</p>
+    ${guideHtml('scenes')}
     ${d.scenes.map((s, i) => `<label>Action ${i + 1}</label><textarea id="fScene${i}" placeholder="e.g. She lifts the lamp and its light falls across the boy's face">${esc(s)}</textarea>`).join('')}
     <button class="btn ghost" onclick="App.addScene()">+ Add another action</button>
     <button class="btn" onclick="App.saveScenes()">Lock scenes →</button>`;
@@ -198,6 +217,17 @@ function renderStudioStep() {
     <div id="promptBox">${d.prompt ? renderPrompt() : ''}</div>`;
   }
   body.innerHTML = html;
+  // Guided Studio: when a step opens with an empty field, the studio
+  // suggests that step on its own — once per idea and step.
+  if (d.step >= 2 && d.step <= 5 && d.idea.trim()) {
+    const stepName = STEP_NAMES[d.step].toLowerCase();
+    const key = d.idea + '|' + stepName;
+    const fieldEmpty = stepName === 'scenes' ? !d.scenes.some(Boolean) : !String(d[stepName] || '').trim();
+    if (fieldEmpty && S.suggestKey !== key && !S.suggestBusy) {
+      S.suggestKey = key;
+      setTimeout(() => App.suggest(stepName), 50);
+    }
+  }
   loadMuseTip(d.step);
 }
 
@@ -242,7 +272,7 @@ async function vStudio() {
     return `<h1>Studio</h1>` + paywallCard({ data: { message: S.access.message } }) + `<p><a class="btn" href="#/learn">Keep learning for free</a></p>`;
   }
   return `<h1>Studio — write your prompt, step by step</h1>
-  <p class="muted">No step is skipped. Each step locks before the next begins. The main aim is helping you write prompts.</p>
+  <p class="muted">Paste your idea and the studio leads — it suggests the character, asks how you want the environment to be, and brings you options at every step. You only pick or say yes. No step is skipped; each step locks before the next begins.</p>
   <div class="card gold" id="museBox"><p class="muted">Muse is with you…</p></div>
   <div id="studioSteps"></div><div id="studioBody"></div>
   <div class="card"><h3>Ask Muse about this step</h3>
@@ -533,6 +563,31 @@ window.App = {
       S.museChat[S.museChat.length - 1] = { who: 'muse', text: r.reply };
     } catch (e) { S.museChat[S.museChat.length - 1] = { who: 'muse', text: e.message }; }
     renderStudioStep(); loadMuseTip(S.studio.step);
+  },
+  async suggest(step) {
+    const d = S.studio;
+    if (!d.idea.trim()) { alert('Paste your idea first — the studio suggests from the idea.'); return; }
+    S.suggestBusy = step;
+    renderStudioStep();
+    try {
+      const r = await api('/api/studio/suggest', 'POST', { step, idea: d.idea, character: d.character, props: d.props, world: d.world, platform: d.platform, platformOther: d.platformOther });
+      S.suggest = r;
+    } catch (e) {
+      S.suggest = { step, question: 'The studio could not suggest right now.', suggestions: [], raw: e.message };
+    }
+    S.suggestBusy = '';
+    renderStudioStep();
+  },
+  useSuggestion(i) {
+    const s = S.suggest;
+    if (!s || !s.suggestions || !s.suggestions[i]) return;
+    const d = S.studio;
+    const text = s.suggestions[i].text || '';
+    if (s.step === 'character') { d.character = text; }
+    else if (s.step === 'props') { d.props = text; }
+    else if (s.step === 'world') { d.world = text; }
+    else if (s.step === 'scenes') { d.scenes = s.suggestions.map((g) => g.text || '').filter(Boolean); }
+    renderStudioStep();
   },
   websiteForProject() {
     const d = S.studio;

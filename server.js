@@ -210,6 +210,55 @@ app.post('/api/idea/directions', auth.requireLogin, access.requireDeep, async (r
   }
 });
 
+// ---------- Studio: guided suggestions (live brain — deep tool) ----------
+// The studio LEADS: once the idea is pasted, the brain suggests the next
+// step and asks the next question, instead of the student bringing
+// everything. The student only picks, edits, or says yes.
+app.post('/api/studio/suggest', auth.requireLogin, access.requireDeep, async (req, res) => {
+  const step = String(req.body?.step || '').trim();
+  const idea = String(req.body?.idea || '').trim();
+  if (!['character', 'props', 'world', 'scenes'].includes(step)) return res.status(400).json({ error: 'Tell the studio which step to suggest: character, props, world or scenes.' });
+  if (!idea) return res.status(400).json({ error: 'Paste your idea first — the studio suggests from the idea.' });
+  const over = limits.checkLimit(req.user, 'think');
+  if (over) return res.status(429).json({ error: over.message });
+  const keys = userKeysFor(req);
+  if (!providers.hasBrain(keys)) {
+    return res.status(503).json({
+      error: 'The live brain needs a key to suggest the next step. No AI key is set — add your own key in Settings, or ask the owner to set one. You can still type the step yourself.',
+    });
+  }
+  const platform = String(req.body?.platform || '').trim();
+  const platformName = platform === 'other' ? (String(req.body?.platformOther || '').trim() || 'another platform') : (PLATFORMS[platform] ? PLATFORMS[platform].name : platform);
+  const soFar = ['character', 'props', 'world'].map((k) => (req.body?.[k] ? `${k}: ${String(req.body[k]).slice(0, 300)}` : '')).filter(Boolean).join('\n');
+  const prompts = {
+    character: 'Suggest ONE main character for this idea, as a full character lock in exact words: face, hair, outfit, accessories, skin tone. The same face, hair, outfit, accessories and skin tone in every shot. Dressing is always modest and decent — a woman wears a hijab covering hair, ears, neck and chest and loose opaque clothing. Also ask one short question that helps the student say what kind of character they want.',
+    props: 'Suggest TWO props for this idea, each as a full prop lock in exact words — the same object in every shot. Also ask one short question that helps the student pick the prop that matters most.',
+    world: 'Ask the student how they want the environment to be, then suggest THREE different environments (worlds) for this idea, each in 2-3 sentences: the place, the light, the air, the sound of the place. Each one must feel different from the others.',
+    scenes: 'Suggest FIVE action beats in order for this idea — one visible, timed action per beat, what we can see a person do (never what they feel inside). The beats must join into one short story with a beginning, a turn, and an ending.',
+  };
+  try {
+    const out = await providers.think(
+      [{ role: 'user', content:
+        `You are HCI, guiding a student step by step. Their idea: "${idea}".` +
+        (platformName ? ` The finished work is for ${platformName}.` : '') +
+        (soFar ? `\nWhat they have locked so far:\n${soFar}` : '') +
+        `\n${prompts[step]}\n` +
+        'Reply as JSON only: {"question":"...","suggestions":[{"title":"...","text":"...","why":"..."}]}. For scenes, put each action beat in its own suggestion with title "Beat 1" and so on.' }],
+      { system: 'You are HCI, Haynurah Creative Intelligence. You lead the student: you suggest the next step and ask the next question in plain words, so the student only picks or says yes. Never invent evidence. Keep every description decent only.', temperature: 0.8, maxTokens: 1200 },
+      keys
+    );
+    logUsage(req.user.id, 'think', out.provider, out.model, 'suggest ' + step, true);
+    let parsed = null;
+    try { const m = out.text.match(/\{[\s\S]*\}/); parsed = m ? JSON.parse(m[0]) : null; } catch (_) { parsed = null; }
+    if (parsed && Array.isArray(parsed.suggestions)) return res.json({ step, question: parsed.question || '', suggestions: parsed.suggestions, provider: out.provider, model: out.model });
+    res.json({ step, question: '', suggestions: [{ title: 'Suggestion', text: out.text, why: '' }], provider: out.provider, model: out.model, note: 'The brain answered in words, not JSON. Read it as the suggestion.' });
+  } catch (e) {
+    console.error('suggest failed:', String(e.message).slice(0, 300));
+    logUsage(req.user.id, 'think', '', '', String(e.message).slice(0, 200), false);
+    res.status(502).json({ error: 'The studio could not suggest right now: ' + String(e.message).slice(0, 300) });
+  }
+});
+
 // ---------- Muse, the in-app assistant ----------
 // Guide tips are built-in knowledge — no key, no login, no limit.
 app.get('/api/muse/tip', (req, res) => {
