@@ -486,7 +486,7 @@ app.use((err, req, res, _next) => {
 });
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || '0.0.0.0'; // 0.0.0.0 so hosts (Railway/Render) can reach the app; 127.0.0.1 hides it from their proxy and gives a 502.
 app.listen(PORT, HOST, () => {
   console.log('HCI Studio running at http://' + HOST + ':' + PORT);
   console.log('Made by Haynurah, the founder of Haynurah Studios.');
