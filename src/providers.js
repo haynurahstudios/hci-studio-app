@@ -102,11 +102,16 @@ async function fetchJson(url, options, timeoutMs = TIMEOUT_MS) {
 
 // One chat call, routed to the first available provider.
 // Preference order: Claude (writes best) -> ChatGPT -> Gemini -> Perplexity.
+// If a provider fails (wrong key, no credit, busy), the next provider is
+// tried instead of failing the whole call — one bad key must never stop
+// the brain while another good key is set.
 // Returns { provider, model, text }.
 async function think(messages, { system, temperature = 0.7, maxTokens = 2000 } = {}, userKeys = null) {
   // The decency ruling goes first, before any other instruction.
   const sys = BRAIN_DECENCY_RULE + '\n' + (system || 'You are HCI, Haynurah Creative Intelligence. Think in plain words. Never invent evidence. Never present an unverified claim as fact.');
+  let lastProviderErr = null;
   if (keyFor('anthropic', userKeys)) {
+    try {
     const data = await fetchJson('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -118,16 +123,20 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000 } =
     });
     const text = (data.content || []).map((b) => b.text || '').join('');
     return { provider: 'anthropic', model: 'claude-sonnet-4-5', text };
+    } catch (e) { lastProviderErr = e; }
   }
   if (keyFor('openai', userKeys)) {
+    try {
     const data = await fetchJson('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: 'Bearer ' + keyFor('openai', userKeys) },
       body: JSON.stringify({ model: 'gpt-4o-mini', temperature, max_tokens: maxTokens, messages: [{ role: 'system', content: sys }, ...messages] }),
     });
     return { provider: 'openai', model: 'gpt-4o-mini', text: data.choices?.[0]?.message?.content || '' };
+    } catch (e) { lastProviderErr = e; }
   }
   if (keyFor('gemini', userKeys)) {
+    try {
     const data = await fetchJson(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + keyFor('gemini', userKeys),
       {
@@ -142,16 +151,19 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000 } =
     );
     const text = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
     return { provider: 'gemini', model: 'gemini-2.5-flash', text };
+    } catch (e) { lastProviderErr = e; }
   }
   // Groq: fast open models on an OpenAI-compatible endpoint.
   // Free tier, no card. Model gpt-oss-120b (OpenAI's open-weight model).
   if (keyFor('groq', userKeys)) {
+    try {
     const data = await fetchJson('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: 'Bearer ' + keyFor('groq', userKeys) },
       body: JSON.stringify({ model: 'openai/gpt-oss-120b', temperature, max_tokens: maxTokens, messages: [{ role: 'system', content: sys }, ...messages] }),
     });
     return { provider: 'groq', model: 'openai/gpt-oss-120b', text: data.choices?.[0]?.message?.content || '' };
+    } catch (e) { lastProviderErr = e; }
   }
   // OpenRouter: many free models behind one key, OpenAI-compatible.
   // Free tier, no card, sign in with Google (no email link).
@@ -160,6 +172,7 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000 } =
   // so on a 429 the next model in the list is tried. Free models also
   // reason before answering, so the token budget gets generous headroom.
   if (keyFor('openrouter', userKeys)) {
+    try {
     const models = [
       'nvidia/nemotron-3-ultra-550b-a55b:free',
       'nvidia/nemotron-3.5-super-vl:free',
@@ -187,16 +200,19 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000 } =
       }
     }
     throw lastErr || new Error('OpenRouter: all free models refused.');
+    } catch (e) { lastProviderErr = e; }
   }
   if (keyFor('perplexity', userKeys)) {
+    try {
     const data = await fetchJson('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: 'Bearer ' + keyFor('perplexity', userKeys) },
       body: JSON.stringify({ model: 'sonar', temperature, max_tokens: maxTokens, messages: [{ role: 'system', content: sys }, ...messages] }),
     });
     return { provider: 'perplexity', model: 'sonar', text: data.choices?.[0]?.message?.content || '' };
+    } catch (e) { lastProviderErr = e; }
   }
-  throw new Error('NO_BRAIN');
+  throw lastProviderErr || new Error('NO_BRAIN');
 }
 
 // Research with sources (Perplexity-style). Uses Perplexity when a key is

@@ -1,10 +1,15 @@
 // HCI Studio — database (SQLite, file-based, no separate server).
 // Uses Node's built-in node:sqlite — no extra dependency.
+// DATA_DIR: where the database, user keys, images and sites live.
+// On hosting that resets the app folder on every deploy, set DATA_DIR to a
+// persistent volume (e.g. /data on Railway) so accounts and projects survive
+// redeploys. Defaults to the app's own data/ folder. The knowledge base
+// (knowledge.json, tutorials.json) always stays in the app's data/ folder.
 const { DatabaseSync } = require('node:sqlite');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, '..', 'data');
 fs.mkdirSync(DATA_DIR, { recursive: true });
 fs.mkdirSync(path.join(DATA_DIR, 'images'), { recursive: true });
 

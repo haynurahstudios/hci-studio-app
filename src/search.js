@@ -42,20 +42,24 @@ async function trending(topic, userKeys = null) {
     '? List the biggest trending topics, stories, songs, memes and conversations people are talking about today, with a one-line note on each.';
 
   if (keyFor('perplexity', userKeys)) {
-    const r = await research(q, userKeys);
-    return { source: 'perplexity', trends: parseTrends(r.text, r.sources), note: 'Live research via Perplexity.' };
+    try {
+      const r = await research(q, userKeys);
+      return { source: 'perplexity', trends: parseTrends(r.text, r.sources), note: 'Live research via Perplexity.' };
+    } catch (_) { /* Perplexity failed — fall through to Tavily, then the public search. */ }
   }
   if (keyFor('tavily', userKeys)) {
-    const res = await fetchWithTimeout('https://api.tavily.com/search', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ api_key: keyFor('tavily', userKeys), query: q, search_depth: 'advanced', max_results: 8, include_answer: true }),
-    }, 15000);
-    const data = await res.json();
-    if (!res.ok) throw new Error('Tavily error: ' + JSON.stringify(data).slice(0, 200));
-    const trends = (data.results || []).map((r) => ({ title: r.title || r.url, url: r.url, why: (r.content || '').slice(0, 200) }));
-    if (data.answer) trends.unshift({ title: 'What the search found', url: '', why: data.answer.slice(0, 400) });
-    return { source: 'tavily', trends, note: 'Live research via Tavily.' };
+    try {
+      const res = await fetchWithTimeout('https://api.tavily.com/search', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ api_key: keyFor('tavily', userKeys), query: q, search_depth: 'advanced', max_results: 8, include_answer: true }),
+      }, 15000);
+      const data = await res.json();
+      if (!res.ok) throw new Error('Tavily error: ' + JSON.stringify(data).slice(0, 200));
+      const trends = (data.results || []).map((r) => ({ title: r.title || r.url, url: r.url, why: (r.content || '').slice(0, 200) }));
+      if (data.answer) trends.unshift({ title: 'What the search found', url: '', why: data.answer.slice(0, 400) });
+      return { source: 'tavily', trends, note: 'Live research via Tavily.' };
+    } catch (_) { /* Tavily key is wrong or Tavily is down — fall through to the public search below. */ }
   }
   // No key: best-effort public search. If it fails, say so plainly.
   try {
@@ -66,6 +70,15 @@ async function trending(topic, userKeys = null) {
       note: 'Best-effort public search (no key set). For full live research with sources, add your own Perplexity key in Settings.',
     };
   } catch (e) {
+    // Last resort: ask the live brain for trending topics with named
+    // sources. The brain itself falls back across providers, so this works
+    // even when a search key is wrong — it just says plainly when it
+    // cannot verify something.
+    try {
+      const r = await research(q, userKeys);
+      const trends = parseTrends(r.text, r.sources);
+      if (trends.length) return { source: r.provider || 'brain', trends, note: 'Trending topics from the live brain — verify each one before building on it.' };
+    } catch (_) { /* the brain could not answer either */ }
     return {
       available: false,
       reason: 'Live trending search needs a key. Add your own Perplexity or Tavily key in Settings (see README), or ask the owner to set one. Without a key the studio still works: type your own idea and walk the steps.',

@@ -63,6 +63,8 @@ The app runs under **no single AI company**. It is HCI, the owner's own app, and
 
 Each user may add **their own key** (Settings → My own keys). Their thinking then uses their own key and their own free credits. Keys are stored encrypted on the server (AES-256-GCM) and never shown back in full. **If no key is set, the app still works** for prompt-building from its built-in HCI knowledge — and it says plainly that the live brain needs a key. It never pretends to think when it cannot.
 
+**One bad key never stops the brain.** If a provider fails — wrong key, no credit left, busy — the brain tries the next provider instead of failing the whole call. The same goes for trending search: if Perplexity or Tavily fails, the app falls back to the public search, then to the live brain itself. (DuckDuckGo's public page blocks the app's server requests, so that middle step often finds nothing — the brain fallback is what actually saves it.)
+
 ## Muse, the in-app assistant
 
 A version of Muse lives **inside** the app — the owner's own assistant, named **Muse**. She speaks and helps the way Muse does: warm, direct, plain words, encouraging, honest about what she does not know and what she cannot do, never pretending — and she teaches instead of just handing over answers.
@@ -136,6 +138,8 @@ The app is a normal Node.js web app. To share it with students, put it on a host
 3. Create `.env` on the host with `PORT`, `HOST=0.0.0.0`, `APP_SECRET` (a long random string), and the owner's provider keys.
 4. Run `npm start`. Put it behind HTTPS (the host or a reverse proxy such as Nginx/Caddy usually does this).
 5. Keep the `data/` folder — it holds the SQLite database (`hci-studio.db`), generated images, and the key-encryption secret. **Back it up.** Never commit `.env` or `data/` to git (both are in `.gitignore`).
+
+**Accounts survive redeploys ONLY on persistent storage.** Hosts that deploy from git (Railway, Render) reset the app folder on every deploy — a database kept inside the app folder is wiped, and every account disappears with it (this happened on Railway on 13 Nov 2026: the owner's account was lost after a redeploy, and a test account became the first account — and therefore the owner). On such a host, attach a persistent volume and set `DATA_DIR` to it (on Railway: add a Volume mounted at `/data` and set `DATA_DIR=/data`). The knowledge base stays in the app's own `data/` folder; only the database, user keys, images and sites move to `DATA_DIR`. After the volume is attached, the first account to sign up becomes the owner — the owner must sign up first, before sharing the link.
 6. Share the link with students. They open it in the browser on any phone — no install, no Play Store.
 
 **Play Store: later, not now.** The app is built mobile-friendly and opened from a link in the browser. Native/mobile packaging is a later step.
