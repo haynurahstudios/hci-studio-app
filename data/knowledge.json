@@ -1,0 +1,805 @@
+{
+  "ruling": "The ruling of this house, above everything else: DECENCY ONLY. Every description the studio gives must be decent only. Immoral behaviour may appear only inside a story as something the story teaches a lesson about — never celebrated, never graphic, never detailed, and never the point of the story; the lesson must address it. Dressing is always decent and modest, no exceptions: everyone is fully and decently dressed, and a woman is always shown with a hijab covering her hair, ears, neck and chest, and loose opaque clothing. If a request conflicts with this ruling, say so plainly and offer a decent alternative — never work around it.",
+  "tagline": "IMAGINE WITHOUT LIMITS. RESEARCH WITH INTELLIGENCE. CREATE WITH DIRECTION.",
+  "mission": "HCI exists for the students of Haynurah Studios Academy, who will not read everything — it teaches in plain words, with its reasoning shown, so a student who never opens a manual still learns the craft correctly.",
+  "modes": [
+    {
+      "name": "Thinking",
+      "what": "Reason about the creative problem: what the objective really is, what the obvious answers are, what directions are possible, which one is strongest and why. Thinking mode produces reasoning, options and a recommendation — not finished prompts and not finished work."
+    },
+    {
+      "name": "Research",
+      "what": "Go and find out what is true: classify the question, choose sources, retrieve, fuse what was found, and trace every claim to its source. Research mode produces verified knowledge with named sources and evidence classes — or an honest statement that the answer could not be verified."
+    },
+    {
+      "name": "Direction",
+      "what": "Direct the production: character first, then environment and props, then scenes and action sequences, then prompts. Direction mode produces production-ready prompts and a shot plan that a tool can actually execute."
+    }
+  ],
+  "boundaries": [
+    "Never invent evidence: do not invent a source, a study, a statistic, a quotation or a reference; if you cannot name the source, say so.",
+    "Never invent a capability: do not claim a tool can do something it cannot do; check the tool registry and re-check the vendor's own documentation at the time of use.",
+    "Never claim to be built when you are not: do not claim HCI is installed, connected, tested or proven on a platform until that is actually true.",
+    "No autonomous action: do not generate, send, publish, buy, book or share anything without the user's go-ahead for that action.",
+    "No false implementation: do not describe a system, a workflow or a file as finished, working or delivered when it is only planned, drafted or half-built.",
+    "No authority outside evidence: do not present your own judgement as research, and do not present research as your own judgement; label HCI judgement as HCI judgement.",
+    "Never present a single score as a judgement of creativity: creativity is always judged as a profile across separate dimensions, with reasons.",
+    "Never use a debunked rule as a teaching fact: crossed arms are not an established sign of defensiveness, and the claim that most communication is nonverbal is a misquotation of Mehrabian's work."
+  ],
+  "styles": [
+    {
+      "id": "photorealism",
+      "name": "Photorealism",
+      "useWhen": "Use when the image must pass for a photograph: a real product, a real place; product advertising, architecture, property, food and anywhere trust matters.",
+      "avoidWhen": "Avoid when you need mood or exaggeration beyond what a camera sees; it can feel ordinary or cold.",
+      "notConfusedWith": "Not cinematic realism: photorealism looks like a photograph, cinematic realism looks like a frame from a film, with a grade and a story. Not hyperrealism: photorealism copies the photo; hyperrealism adds detail the photo never had."
+    },
+    {
+      "id": "cinematic-realism",
+      "name": "Cinematic realism",
+      "useWhen": "Use for film-like stories with real people and real emotion: drama, narrative video, advertising, trailers and brand stories.",
+      "avoidWhen": "Avoid when you need exact documentary truth: it is still staged.",
+      "notConfusedWith": "Not photorealism: a photograph records a moment; cinematic realism stages it like a film. Not documentary: documentary observes reality as it is; cinematic realism stages reality like a film, with a grade and a story."
+    },
+    {
+      "id": "hyperrealism",
+      "name": "Hyperrealism",
+      "useWhen": "Use when detail must exceed a photograph: texture close-ups, product detail, a face where every line matters; luxury close-ups, watch and jewellery advertising, beauty.",
+      "avoidWhen": "Avoid when detail would distract from the story, or the action is fast. Hyperrealism does NOT mean dull: it means sharper, cleaner and more detailed than a photograph.",
+      "notConfusedWith": "Not photorealism: photorealism copies the photograph; hyperrealism goes beyond it. The photograph is the starting point, not the limit."
+    },
+    {
+      "id": "3d-cgi",
+      "name": "3D CGI",
+      "useWhen": "Use for objects, products or places that do not exist or cannot be filmed, and impossible camera moves; products that do not exist yet, cars, architecture and product visualisation.",
+      "avoidWhen": "Avoid for human emotion in close-up: faces go stiff.",
+      "notConfusedWith": "Not 3D animation: CGI is the rendered image; animation is the movement. A still car render is CGI but not animation."
+    },
+    {
+      "id": "3d-animation",
+      "name": "3D animation",
+      "useWhen": "Use for character stories needing expressive, stylised movement: family films, explainers, fantasy characters, children's content and games.",
+      "avoidWhen": "Avoid when you need a real human likeness.",
+      "notConfusedWith": "Not 3D CGI: CGI is the still rendered image; 3D animation is CGI plus movement over time. Not 2D animation: 3D has depth to walk a camera through."
+    },
+    {
+      "id": "2d-animation",
+      "name": "2D animation",
+      "useWhen": "Use for simple, clear, charming stories: explainers, children's stories, stylised advertising, cartoons, education and social media.",
+      "avoidWhen": "Avoid when you need realism or complex depth.",
+      "notConfusedWith": "Not anime: 2D is the technique (flat drawing); anime is a style inside 2D, with large eyes and detailed backgrounds. Not 3D animation: 2D has no depth to walk a camera through."
+    },
+    {
+      "id": "anime-inspired",
+      "name": "Anime-inspired",
+      "useWhen": "Use for expressive emotion and stylised beauty for young audiences: drama, fantasy, music, action, storytelling and games.",
+      "avoidWhen": "Avoid for documentary truth or realistic product work.",
+      "notConfusedWith": "Not 2D animation generally: all anime is animation, but not all animation is anime. Anime is one style inside 2D; anime is a style, not a production method."
+    },
+    {
+      "id": "stop-motion",
+      "name": "Stop-motion",
+      "useWhen": "Use for handmade charm and tactile texture: quirky advertising, title sequences, craft, fantasy creatures, children's content and craft brands.",
+      "avoidWhen": "Avoid for smooth fast action or realistic humans.",
+      "notConfusedWith": "Not claymation: claymation is one kind of stop-motion, using clay. Stop-motion is the whole family; claymation is one member of it."
+    },
+    {
+      "id": "claymation",
+      "name": "Claymation",
+      "useWhen": "Use for playful, handmade character stories: children's content, comedy, warm advertising, children's films and title sequences.",
+      "avoidWhen": "Avoid for realism or serious drama.",
+      "notConfusedWith": "Not stop-motion generally: stop-motion can use any material — puppets, paper, toys. Claymation uses clay only."
+    },
+    {
+      "id": "editorial",
+      "name": "Editorial",
+      "useWhen": "Use for magazine, fashion and lifestyle work: fashion, luxury, beauty, magazine covers, lookbooks and premium brand campaigns.",
+      "avoidWhen": "Avoid for narrative video or documentary.",
+      "notConfusedWith": "Not UGC: editorial is polished, directed and styled; UGC is casual, unpolished and filmed by an ordinary person. Not photorealism: editorial is photorealistic in rendering, but its purpose is to sell a look. Not documentary: editorial is composed and directed; documentary is observed."
+    },
+    {
+      "id": "documentary",
+      "name": "Documentary",
+      "useWhen": "Use for real life, real people, real events: truth, interviews, real places, education, journalism, travel and charity work.",
+      "avoidWhen": "Avoid for fantasy or anything staged as fiction.",
+      "notConfusedWith": "Not cinematic realism: documentary observes reality as it is; cinematic realism stages reality like a film, with a grade and a story."
+    },
+    {
+      "id": "ugc",
+      "name": "UGC",
+      "useWhen": "Use when the work must feel like a real person filmed it: testimonials, social advertising, honest reviews, unboxings and product reviews.",
+      "avoidWhen": "Avoid for luxury, cinema, or anything that must look polished.",
+      "notConfusedWith": "Not editorial: editorial is polished and directed; UGC is casual and unpolished. Both can sell a product, but they work by opposite means."
+    },
+    {
+      "id": "surrealism",
+      "name": "Surrealism",
+      "useWhen": "Use for dreams, strange ideas, the impossible made visible: art films, music videos, advertising that needs shock, creative advertising and posters.",
+      "avoidWhen": "Avoid for clear instruction or realism.",
+      "notConfusedWith": "Not fantasy: fantasy builds a consistent imaginary world with rules; surrealism breaks the rules on purpose."
+    },
+    {
+      "id": "fantasy",
+      "name": "Fantasy",
+      "useWhen": "Use for magic, other worlds, creatures: stories that need wonder; games, films, children's stories, book covers and themed advertising.",
+      "avoidWhen": "Avoid for real-life instruction or documentary.",
+      "notConfusedWith": "Not surrealism: surrealism breaks logic; fantasy builds a new logic. A floating island with a castle and a wizard follows its own rules."
+    },
+    {
+      "id": "minimalism",
+      "name": "Minimalism",
+      "useWhen": "Use when one thing must carry the whole image: luxury, calm, a single product; luxury brands, technology, premium products and architecture.",
+      "avoidWhen": "Avoid for busy stories or rich detail.",
+      "notConfusedWith": "Not empty: minimalism is a choice, not an accident. Every element is placed on purpose. It is the opposite of a busy, crowded frame."
+    },
+    {
+      "id": "vintage-retro",
+      "name": "Vintage / retro",
+      "useWhen": "Use for nostalgia and a period feeling: period stories, retro brands, the warmth of the past; nostalgia campaigns, heritage brands and family products.",
+      "avoidWhen": "Avoid for modern, clean, future-facing work.",
+      "notConfusedWith": "Not documentary: documentary shows the present honestly; vintage imitates the past deliberately, even when the scene was made today."
+    },
+    {
+      "id": "film-noir",
+      "name": "Film noir",
+      "useWhen": "Use for crime, mystery and moral shadows: tension, secrets, night; crime stories, mystery, dramatic advertising and moody branding.",
+      "avoidWhen": "Avoid for bright, warm, happy stories.",
+      "notConfusedWith": "Not just black and white: a black-and-white photograph is not automatically noir. Noir needs the shadows, the contrast and the mood of danger. Not low-key lighting: film noir is a style, not a lighting setup."
+    },
+    {
+      "id": "illustrative-and-painterly",
+      "name": "Illustrative and painterly",
+      "useWhen": "Use for art, books, posters, stories that need a human hand: children's books, art, emotional storytelling, album covers.",
+      "avoidWhen": "Avoid for photoreal truth or product accuracy; it cannot show fine product detail.",
+      "notConfusedWith": "Illustration is graphic and clean: flat colour, clear outlines. Painterly is textured and blended: brushstrokes, thick paint, soft edges. A storybook drawing is illustration; an impressionist landscape is painterly. The opposite of photorealism, which deliberately eliminates texture and brushwork."
+    },
+    {
+      "id": "motion-graphics",
+      "name": "Motion graphics",
+      "useWhen": "Use for titles, explainers, data, logos in motion: information made visible; explainer videos, titles, social media, data and statistics.",
+      "avoidWhen": "Avoid for human stories or emotion; it cannot tell a realistic story and gives no human emotion from a face.",
+      "notConfusedWith": "Not 2D animation: 2D animation tells a story with characters; motion graphics communicates with shapes, icons and text. Not animation generally: the subject is the design, not a character."
+    },
+    {
+      "id": "architectural-and-product-visualisation",
+      "name": "Architectural and product visualisation",
+      "useWhen": "Use for buildings, interiors and products before they exist: clients, pitches, catalogues; real estate, architecture, interior design and product launches.",
+      "avoidWhen": "Avoid for human stories or emotion.",
+      "notConfusedWith": "Not 3D CGI generally: visualisation is one use of CGI, with a specific job — to show a design accurately. A fantasy car render is CGI; a render of a real apartment for sale is visualisation."
+    }
+  ],
+  "styleMixing": {
+    "rule": "one style leads, one supports, the mix must have a reason",
+    "goodMixes": [],
+    "badMixes": []
+  },
+  "animationPrinciples": [
+    {
+      "n": 1,
+      "name": "Squash and stretch",
+      "what": "Shapes deform to show weight, flexibility and speed; a falling ball stretches, flattens on contact, recovers. Keep the volume consistent: stretch thinner, squash wider. Considered the most important.",
+      "howToUse": "Deform the character or object on impact and in motion, keeping its volume the same, so weight and speed read clearly."
+    },
+    {
+      "n": 2,
+      "name": "Anticipation",
+      "what": "A small counter-move prepares the big one: crouch before a jump, wind up before a pitch. It tells the audience what is coming and makes the action read as realistic.",
+      "howToUse": "Put a small opposite move before every big action so the audience knows what is coming."
+    },
+    {
+      "n": 3,
+      "name": "Staging",
+      "what": "Present one idea clearly at a time; the audience must know what to look at.",
+      "howToUse": "Frame and pose so only one idea is on screen at a time; if a secondary action distracts from the main action, leave it out."
+    },
+    {
+      "n": 4,
+      "name": "Straight-ahead action and pose-to-pose",
+      "what": "Two working methods: straight-ahead (draw frame by frame from the start, fluid but hard to control) and pose-to-pose (draw the key poses first, then the in-betweens, planned and controlled).",
+      "howToUse": "Choose straight-ahead for fluid, unpredictable motion and pose-to-pose for planned, controlled action."
+    },
+    {
+      "n": 5,
+      "name": "Follow-through and overlapping action",
+      "what": "Parts of a body keep moving after the main action stops, and different parts move at different rates: hair, clothes, a tail.",
+      "howToUse": "Let hair, clothes and loose parts settle after the body stops, each at its own rate."
+    },
+    {
+      "n": 6,
+      "name": "Slow in and slow out",
+      "what": "Movement eases into and out of a pose; more drawings near the extremes, fewer in the middle.",
+      "howToUse": "Put more frames near the start and end of a move and fewer in the middle so motion eases in and out."
+    },
+    {
+      "n": 7,
+      "name": "Arcs",
+      "what": "Living things move in curved paths, not straight lines: the arc of a swinging arm, a thrown ball, a turning head.",
+      "howToUse": "Move arms, heads and thrown objects along curved paths, never straight lines."
+    },
+    {
+      "n": 8,
+      "name": "Secondary action",
+      "what": "A smaller action that supports the main one (a sigh while walking, a hand gesture while speaking); it must not compete with the main action.",
+      "howToUse": "Add one small supporting action only if it strengthens the main action; cut it if it competes."
+    },
+    {
+      "n": 9,
+      "name": "Timing",
+      "what": "The number of frames given to an action sets its weight, speed and mood; more frames means slower and heavier, fewer means faster and lighter.",
+      "howToUse": "Set the frame count to the weight you want: more frames for heavy and slow, fewer for fast and light."
+    },
+    {
+      "n": 10,
+      "name": "Exaggeration",
+      "what": "Push the action beyond realism to make it read clearly; not distortion for its own sake, but the truth of the action made legible.",
+      "howToUse": "Push poses and motion past realism until the action reads clearly, without turning it into distortion."
+    },
+    {
+      "n": 11,
+      "name": "Solid drawing",
+      "what": "Forms must have weight, volume and balance in three dimensions, even when drawn flat; the character must feel solid.",
+      "howToUse": "Draw and pose every form with real weight, volume and balance, even in a flat style."
+    },
+    {
+      "n": 12,
+      "name": "Appeal",
+      "what": "The character must be pleasing to look at and interesting to watch; appeal is not prettiness, it is charisma in design.",
+      "howToUse": "Design the character to be interesting and pleasing to watch; a character need not be realistic or sympathetic to be appealing."
+    }
+  ],
+  "shotSizes": [
+    {
+      "name": "Extreme wide shot",
+      "what": "A person a speck in a landscape.",
+      "useWhen": "Use when the place is the story."
+    },
+    {
+      "name": "Wide / long shot",
+      "what": "Full body with surroundings.",
+      "useWhen": "Use to show the whole person in their place; the wider the shot, the more it is about the place."
+    },
+    {
+      "name": "Medium long / cowboy shot",
+      "what": "Knees up.",
+      "useWhen": "Use to show the body and some surroundings, between wide and medium."
+    },
+    {
+      "name": "Medium shot",
+      "what": "Waist up.",
+      "useWhen": "Use as the workhorse of dialogue."
+    },
+    {
+      "name": "Medium close-up",
+      "what": "Chest and head.",
+      "useWhen": "Use to move closer to the person while keeping some context."
+    },
+    {
+      "name": "Close-up",
+      "what": "The face fills the frame.",
+      "useWhen": "Use for emotion; the tighter the shot, the more it is about emotion."
+    },
+    {
+      "name": "Extreme close-up",
+      "what": "One detail: an eye, a hand, a switch.",
+      "useWhen": "Use rarely, for intense focus on a single detail."
+    }
+  ],
+  "cameraAngles": [
+    {
+      "name": "Eye level",
+      "what": "Level with the subject's eyes.",
+      "effect": "Neutral, honest, equal."
+    },
+    {
+      "name": "Low angle",
+      "what": "Below the subject, looking up.",
+      "effect": "Lifts a subject — stature, authority, threat."
+    },
+    {
+      "name": "High angle",
+      "what": "Above the subject, looking down.",
+      "effect": "Shrinks a subject — vulnerability, smallness, exposure."
+    },
+    {
+      "name": "Overhead / bird's-eye",
+      "what": "Looks straight down on the subject.",
+      "effect": "A god's-eye view; the subject looks small and exposed."
+    },
+    {
+      "name": "Worm's-eye",
+      "what": "Looks straight up from the ground.",
+      "effect": "The subject towers; extreme height and power."
+    },
+    {
+      "name": "Dutch angle",
+      "what": "The horizon is tilted.",
+      "effect": "Signals tension, unease, that something is wrong — use sparingly."
+    }
+  ],
+  "cameraMovements": [
+    {
+      "name": "Static",
+      "what": "The camera does not move.",
+      "effect": "Calm, stable, observational; the action carries the shot."
+    },
+    {
+      "name": "Pan",
+      "what": "Rotate horizontally on a fixed spot.",
+      "effect": "Covers space, follows a subject, connects points of interest."
+    },
+    {
+      "name": "Tilt",
+      "what": "Rotate vertically on a fixed spot.",
+      "effect": "Reveals height or depth, follows vertical movement."
+    },
+    {
+      "name": "Push in / pull out",
+      "what": "Dolly toward or away from the subject.",
+      "effect": "Push in builds intensity; pull out releases and reveals."
+    },
+    {
+      "name": "Tracking",
+      "what": "The camera travels with the subject, including circular tracking.",
+      "effect": "Moves with the subject and can unify subjects in a scene."
+    },
+    {
+      "name": "Crane",
+      "what": "Large vertical and travelling moves.",
+      "effect": "Grand, sweeping reveals and height, for example the Citizen Kane shot through the skylight."
+    },
+    {
+      "name": "Handheld",
+      "what": "The camera is carried by hand, unsteady.",
+      "effect": "Unstable, urgent, documentary-feeling."
+    },
+    {
+      "name": "Orbit",
+      "what": "The camera circles around a subject.",
+      "effect": "Shows the subject from all sides and adds drama."
+    },
+    {
+      "name": "Zoom",
+      "what": "Magnifies from a fixed spot.",
+      "effect": "Flattens the image, unlike a dolly which moves through real space with real parallax."
+    },
+    {
+      "name": "Dolly zoom",
+      "what": "The camera moves toward or away from the subject while the lens zooms the opposite way, so the subject stays the same size while the background stretches or squeezes.",
+      "effect": "Dolly in plus zoom out expands the background (isolation); dolly out plus zoom in compresses it (closing in)."
+    }
+  ],
+  "lensDoF": "Depth of field is the zone in front of and behind the point of focus that still looks acceptably sharp. Four things control it: aperture (a wider opening means shallower; depth of field grows roughly in step with the f-number), focus distance (a closer subject means shallower; doubling the distance roughly quadruples the depth of field), focal length (at the same camera position a longer lens gives a much shallower zone), and format or sensor size. The precision that matters most: at the same framing (same subject size), total depth of field is almost the same across focal lengths; what changes is the background — a longer lens shows less of it and enlarges it, so it looks blurrier. Perspective is set mainly by camera distance, not by focal length. Never write a prompt that claims a focal length alone created a shallow background; name the distance, the aperture and the framing.",
+  "lighting": {
+    "rule": "soft warm directional light plus a gentle fill; never flat white light; never unfilled shadows; hyperrealism means sharper and clearer than a photograph, not dull",
+    "keyToFill": "1:1 flat, 2:1 natural, 4:1 dramatic",
+    "setups": [
+      {
+        "name": "Three-point lighting",
+        "what": "Key light (the primary source, typically about 30 to 45 degrees off the camera, creating depth through shadows), fill light (softer, dimmer, opposite the key, softening shadows), backlight or rim light (from behind, separating the subject from the background)."
+      },
+      {
+        "name": "Rembrandt",
+        "what": "Key high and about 45 degrees to one side, a small triangle of light on the shadowed cheek."
+      },
+      {
+        "name": "Butterfly",
+        "what": "Key above and in front, for glamour."
+      },
+      {
+        "name": "Split",
+        "what": "Key at 90 degrees, one side lit, one side dark."
+      },
+      {
+        "name": "High-key",
+        "what": "Bright and even with minimal shadows; upbeat or neutral."
+      },
+      {
+        "name": "Low-key",
+        "what": "High contrast with deep shadows and minimal fill; dramatic and suspenseful."
+      }
+    ]
+  },
+  "composition": [
+    "Rule of thirds: divide the frame into a 3x3 grid; place key subjects on the lines or at their four intersections — a starting point, not a law; deliberate centre placement creates stability, formality or uncanny stillness.",
+    "Centre composition: symmetry — stability, formality.",
+    "Leading lines: roads, corridors, horizons and sightlines direct the eye to the subject and create depth; vertical lines suggest strength, horizontal lines calm, diagonal lines movement, tension or unease.",
+    "Negative space: empty space that isolates and gives a subject room — also called breathing room.",
+    "Layered depth / foreground-background layering: elements in foreground, middle ground and background create depth and dimensionality.",
+    "Frame within a frame: a doorway, window or arch enclosing the subject.",
+    "Symmetry and asymmetrical balance.",
+    "Patterns and repetition.",
+    "Perspective: vanishing point and scale.",
+    "Headroom: space above the head — too much makes a subject small, too little is claustrophobic.",
+    "Look room / lead room: space in front of a face or direction of movement.",
+    "The 180-degree rule: the camera stays on one side of the axis between two characters in a dialogue scene, or the viewer is disoriented by a reverse cut."
+  ],
+  "colour": {
+    "rule": "colour and mood are possibilities, not universal rules",
+    "formula": "[Desired mood] + [Dominant colour palette] + [Highlight treatment] + [Shadow treatment] + [Contrast] + [Saturation] + [Colour accuracy] + [Visual style]",
+    "styles": [
+      {
+        "name": "Warm golden cinematic",
+        "mood": "Warmth, comfort, nostalgia, romance. Suitable for travel, food, romance, golden-hour scenes and family stories.",
+        "avoid": "Avoid for cold, clinical or tense stories, where it will feel false."
+      },
+      {
+        "name": "Cool blue cinematic",
+        "mood": "Calm, distance, mystery, sadness. Suitable for night scenes, cities, thrillers and quiet drama.",
+        "avoid": "Avoid for warmth, comfort and celebration, where it will feel unfriendly."
+      },
+      {
+        "name": "Teal and orange",
+        "mood": "Energy, drama, adventure. Suitable for action, travel, portraits and urban scenes, because warm skin stands out against a cool background.",
+        "avoid": "Avoid when skin turns too orange, when shadows turn too blue, or when every video uses it: it is the most overused grade in the world. Use at 50-70% strength, pushing only the shadows teal, not the midtones, to keep faces honest."
+      },
+      {
+        "name": "Muted earthy tones",
+        "mood": "Honesty, calm, nature, tradition. Suitable for documentaries, crafts, nature and quiet stories.",
+        "avoid": "Avoid for celebration, luxury and energy, where it will feel dull."
+      },
+      {
+        "name": "Soft pastel grading",
+        "mood": "Softness, romance, innocence, calm. Suitable for beauty, fashion, weddings, skincare and gentle stories.",
+        "avoid": "Avoid for drama, tension and power, where it will feel weak."
+      },
+      {
+        "name": "High-contrast dramatic",
+        "mood": "Drama, power, tension. Suitable for fashion editorials, thrillers, music videos and strong portraits.",
+        "avoid": "Avoid for soft, natural and documentary subjects, where it will feel harsh."
+      },
+      {
+        "name": "Natural and realistic",
+        "mood": "Trust, clarity, realism. Suitable for documentaries, education, news, product demonstrations and anything that must be believed.",
+        "avoid": "Avoid when the story needs a strong mood, because this grade deliberately adds none."
+      },
+      {
+        "name": "Rich luxury commercial",
+        "mood": "Luxury, elegance, desire. Suitable for perfume, jewellery, watches, cars and premium products.",
+        "avoid": "Avoid for everyday, casual and documentary subjects, where it will feel false."
+      },
+      {
+        "name": "Vintage and nostalgic",
+        "mood": "Nostalgia, memory, history, warmth. Suitable for family stories, history, retro products and warm memories.",
+        "avoid": "Avoid for modern, clean and futuristic subjects, where it will feel dated."
+      },
+      {
+        "name": "Monochromatic",
+        "mood": "Timelessness, gravity, art. Suitable for portraits, architecture, drama and anything where shape and light matter more than colour.",
+        "avoid": "Avoid for products, food and travel, where colour is the information."
+      },
+      {
+        "name": "Dark moody",
+        "mood": "Mystery, tension, intimacy, danger. Suitable for thrillers, night scenes, moody interiors and quiet drama.",
+        "avoid": "Avoid for bright, happy and commercial subjects, where the audience will not see the product."
+      },
+      {
+        "name": "Vibrant colourful commercial",
+        "mood": "Energy, joy, appetite, excitement. Suitable for food, drink, toys, travel, festivals and upbeat advertising.",
+        "avoid": "Avoid for luxury, drama and quiet stories, where it will feel loud and cheap."
+      }
+    ]
+  },
+  "cinematographyFormula": "[Shot size] + [Camera angle] + [Camera movement] + [Subject/action] + [Lens and depth of field] + [Lighting] + [Composition] + [Colour mood] + [Visual style]",
+  "directorsFormula": "[Subject] + [Appearance] + [Position] + [Action in order] + [Environment] + [Interaction] + [Emotion] + [Timing] + [Result] + [Continuity]",
+  "promptStandard": [
+    "Shot size named",
+    "Camera angle named",
+    "Camera movement named — one shot, one move, one primary subject per generation pass",
+    "Subject and action written as verbs in order across the seconds of the clip",
+    "Lens and depth of field named (distance, aperture and framing — never a focal length alone claiming a shallow background)",
+    "Lighting described: source, direction and quality",
+    "Composition named",
+    "Colour mood named",
+    "Visual style chosen, with its reason in one sentence",
+    "Behaviour direction: verbs and objectives, not adjectives — what the character does, not the emotion to be",
+    "Character lock repeated word for word in every prompt, and prop lock repeated the same way",
+    "Tool checked: the tool named can actually make this clip at this length, with this audio, at this resolution — re-checked on the vendor's own documentation",
+    "Complete and copy-ready, 50 to 150 words for an image prompt, with no placeholders and no insert-your-idea-here",
+    "Image verified at full size against the lock before delivery"
+  ],
+  "stepOrder": [
+    "Character — lock in exact words",
+    "Environment and props — prop lock in exact words",
+    "Scenes and action sequences",
+    "Prompts — built from the locks"
+  ],
+  "disciplines": [
+    {
+      "id": "FILM-CINE",
+      "name": "Cinematography",
+      "what": "Shot size, angle, movement, lens and depth of field, lighting, composition, colour and mood."
+    },
+    {
+      "id": "FILM-STORY",
+      "name": "Storytelling and directing",
+      "what": "Story structure, beats, character objectives, staging, and directing actors and action."
+    },
+    {
+      "id": "BEH-EMO",
+      "name": "Human behaviour and emotional expression",
+      "what": "Face, body, voice, concealment, and the honest limits of reading people."
+    },
+    {
+      "id": "ANIM-CHAR",
+      "name": "Animation and character",
+      "what": "The twelve principles of animation, character design, model sheets, and keeping a character consistent."
+    },
+    {
+      "id": "ADV-COMM",
+      "name": "Advertising and communication",
+      "what": "Messages that persuade, user-generated content, and communication that fits its audience."
+    },
+    {
+      "id": "BRAND-STRAT",
+      "name": "Brand and strategy",
+      "what": "What a brand stands for, who it serves, and how its creative choices follow from that."
+    },
+    {
+      "id": "VIS-DESIGN",
+      "name": "Visual design",
+      "what": "Visual styles, the difference between a type, a technique and a style, and design that serves the message."
+    },
+    {
+      "id": "PSYCH-AUD",
+      "name": "Psychology and audience",
+      "what": "How people perceive, remember, feel and decide, and what that means for a maker."
+    },
+    {
+      "id": "RES-SYNTH",
+      "name": "Research and synthesis",
+      "what": "Finding sources, weighing evidence, and turning many sources into one honest answer."
+    },
+    {
+      "id": "PHOTO-PROD",
+      "name": "Photography and production",
+      "what": "Stills, reference frames, and the practical work of producing a shoot."
+    },
+    {
+      "id": "SOUND-AUDIO",
+      "name": "Sound and audio",
+      "what": "Voice, music, effects and silence, and how sound carries emotion and meaning."
+    },
+    {
+      "id": "DOC-EDU",
+      "name": "Documentation and education",
+      "what": "Lessons, guides and references that teach clearly and can be checked."
+    },
+    {
+      "id": "TECH-EMERG",
+      "name": "Technology and emerging tools",
+      "what": "What new tools can actually do, verified against the vendor, and what is changing."
+    }
+  ],
+  "behaviour": {
+    "framework": [
+      "FACS describes; it does not detect emotion — any mapping of Action Units to emotions adds an interpretive layer whose validity is exactly what the universality debate contests.",
+      "Prototypes describe posed, exaggerated expressions — spontaneous real-life expressions are typically partial, blended, lower-intensity and shorter, and recognition accuracy for them is far lower.",
+      "A face that shows an emotion does not prove the person feels it, and a felt emotion does not guarantee a visible expression.",
+      "Arousal is the reliable signal; discrete emotion is probabilistic — high pitch plus fast plus loud reliably signals high arousal; which discrete emotion it is needs context, words, face and situation.",
+      "All vocal profiles are relative to the speaker's baseline — no absolute pitch, loudness or speed value defines an emotion.",
+      "Actor portrayals dominate the evidence for both face and voice — spontaneous emotion is under-studied and may differ.",
+      "Culture matters in both directions — expression and recognition both show an in-group advantage; a voice or face that reads as angry in one culture may read differently in another.",
+      "No behavioural or vocal cue equals lying — pitch rise means stress or arousal, not deception; human lie detection is 54% against 50% chance; voice stress analysis is invalid.",
+      "Mehrabian must never be quoted as a general rule — 7-38-55 applies only to liking and attitude judgements from single words with conflicting cues, and 55% is face, not body language.",
+      "Direction is verbs, not adjectives — give a character something to do (objective, action verb, obstacle, physical task), never an emotion to be.",
+      "Consistency is a production system, not a wish — model sheets, turnarounds and expression sheets plus script-supervisor continuity; a written character lock is a synthesis of those two practices, not itself a separately verified film rule.",
+      "Pick a shore: honest stylisation or flawless realism, never the expensive middle — the uncanny valley lives in perceptual mismatch, and its last stretch (eyes, skin, timing) is where it bites."
+    ],
+    "rules": [
+      "FACS describes, it does not detect emotion",
+      "body language is never a lie detector (human accuracy 54% vs 50% chance)",
+      "Mehrabian 7-38-55 applies only to liking judgements from single words with conflicting cues",
+      "pick a shore for the uncanny valley: honest stylisation or flawless realism, never the expensive middle",
+      "display rules: intensify, deintensify, neutralise, mask, simulate, qualify"
+    ]
+  },
+  "story": {
+    "note": "Aristotle did NOT invent the three-act structure; the twelve stages are Vogler's, not Campbell's",
+    "structures": [
+      "Aristotle: a plot must be a whole — a beginning that needs nothing before it, a middle that follows from the beginning and leads to the end, and an end that follows from the middle and needs nothing after it, with events linked by cause and effect; reversal (peripeteia) and recognition (anagnorisis) are the two great turns.",
+      "Freytag: the five-part pyramid — exposition, rising action, climax, falling action, catastrophe; the climax sits near the middle and the second half is the long consequence.",
+      "Syd Field: the three-act paradigm — Act I Set-up (25%), Act II Confrontation (50%), Act III Resolution (25%), with Plot Point I ending Act I and Plot Point II ending Act II.",
+      "Vogler's twelve stages (Campbell described three parts — separation, initiation, return — subdivided into seventeen stages): Ordinary World, Call to Adventure, Refusal of the Call, Meeting with the Mentor, Crossing the First Threshold, Tests/Allies/Enemies, Approach to the Inmost Cave, Ordeal, Reward (Seizing the Sword), The Road Back, Resurrection, Return with the Elixir. Vogler warned the stages are not a checklist and can be deleted, added to and shuffled.",
+      "McKee: principles, not rules — story is about eternal, universal forms, not formulas; a scene is an action through conflict that turns the value-charged condition of a character's life; a beat is an exchange of behaviour in action or reaction.",
+      "Snyder (Save the Cat): fifteen beats — Opening Image, Theme Stated, Set-Up, Catalyst, Debate, Break into Two, B Story, Fun and Games, Midpoint, Bad Guys Close In, All Is Lost, Dark Night of the Soul, Break into Three, Finale, Final Image."
+    ]
+  },
+  "tools": [
+    {
+      "name": "Google Flow / Veo 3.1",
+      "kind": "video",
+      "clips": "4, 6 or 8 seconds; Quality is 8 seconds only; clips can be extended, and extension runs on Lite",
+      "audio": "Yes — dialogue, sound effects and ambience made in the same pass as the picture",
+      "price": "Every account gets 50 free credits a day; Veo 3.1 Lite 10 credits (5 on Ultra), Fast 20 credits (10 on Ultra), Quality 100 credits; Google AI Plus $4.99/month (200 credits/month), Pro $19.99/month (1,000 credits), Ultra $99.99 or $199.99/month (10,000 or 25,000 credits)",
+      "limits": "No clip longer than 8 seconds natively; Veo generates new clips only and does not grade existing footage; video editing unavailable in the EEA, Switzerland and the UK; 720p and 1080p, 1080p upscaling free on paid plans, 4K upscaling Ultra only; Veo 3.1 Fast and Quality and Omni Flash 1.1 retire 5 December 2026",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "Gemini Omni Flash",
+      "kind": "video",
+      "clips": "3-10 seconds, up to 15 seconds on paid plans; the only Flow model that extends a clip after Veo Extend was retired on 5 November 2026",
+      "audio": "Yes, as part of the Omni generation pass in Flow",
+      "price": "Omni Flash at 720p costs 7, 10, 12 or 15 credits for 4, 6, 8 or 10 seconds; at 360p it costs 4, 5, 6 or 7 credits; an edit costs 40 credits; Gemini Omni API price about $0.07 a second at 720p and $0.023 at 360p (another source says about $0.10 a second)",
+      "limits": "Edits existing video; Omni Flash 1.1 retires 5 December 2026; 1080p upscaling free on paid plans",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "Runway Gen-4.5",
+      "kind": "video",
+      "clips": "2-10 seconds per generation (app presets 5, 8 and 10 seconds); 24 or 25 frames per second; six aspect ratios (16:9, 9:16, 1:1, 4:3, 3:4, 21:9)",
+      "audio": "UNVERIFIED — plan for silent clips plus a separate audio pass",
+      "price": "Standard $15/month ($12 annual, 625 credits), Pro $35/month ($28 annual, 2,250 credits), Max / Unlimited $95/month ($76 annual); Gen-4.5 costs 12 credits a second ($0.12 a second through the API); free plan gives 125 one-time credits and no Gen-4.5 access",
+      "limits": "720p native (1280x720 for 16:9); 4K is an upscale, not native output; Runway's own announced limits: causal reasoning, object permanence, success bias; editing via Aleph 2.0 (up to 30 seconds at 1080p, 28 credits a second); Act-Two performance capture up to 30 seconds, 5 credits a second; top-tier plan contents UNVERIFIED (9,500 credits versus 2,250 credits plus Explore mode)",
+      "status": "current as of Nov 2026; native audio UNVERIFIED"
+    },
+    {
+      "name": "Kling 4.0",
+      "kind": "video",
+      "clips": "3-30 seconds in one pass; Kling 4.0 Flash: 3-20 seconds at 720p, about 40 percent cheaper; aspect ratios 21:9, 16:9, 1:1, 9:16",
+      "audio": "two-channel stereo audio on every clip",
+      "price": "API $0.157 a second at 720p and $0.235 a second at 1080p with no input video; $0.094 and $0.141 with input video; on kling.ai, plans from about $8.80 a month (Standard, 660 credits) and Pro $37 a month (3,000 credits, includes 4.0); free daily credits; a 5-second 720p clip is 50 credits on Pro (about $0.62)",
+      "limits": "Audio is always on — a student who wants a silent clip cannot switch it off; 10-bit HDR at 1080p and 4K and extension to 2 minutes are marked coming soon, not live; up to 15 references per generation (at most 10 images, 5 videos totalling 30 seconds, 7 subjects), up to 10 keyframes; Kling 3.0 (February 2026) remains available: 3-15 seconds, native audio",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "Seedance 2.5",
+      "kind": "video",
+      "clips": "4-30 seconds in one generation",
+      "audio": "Yes — dialogue, effects, ambience and music made in the same pass at no extra cost",
+      "price": "In CapCut, Seedance 2.5 from $0.12 a second (first-month price) on Pro; Seedance 2.0 Mini from $0.007 a second at 480p; standalone Dreamina about $0.097 a second on the annual Advanced plan (about $2.91 for a 30-second clip); BytePlus ModelArk API $10.70 per 1M tokens at 480p and 720p (about $0.23 a second at 720p), $11.70 at 1080p",
+      "limits": "480p, 720p and 1080p (10-bit at 1080p from August 2026); six aspect ratios; edits pinned to timestamps or characters; up to 50 references (30 images, 10 videos, 10 audio); Seedance 2.0 makes up to 15 seconds",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "Pika 2.5",
+      "kind": "video",
+      "clips": "Native clips 10-15 seconds (25 seconds through Pikaframes); default clip length 3-5 seconds",
+      "audio": "No native dialogue or music — only auto-generated sound effects that match the visuals; lip sync is the separate Pikaformance feature (3 credits per second of audio)",
+      "price": "Free $0 (0 monthly credits, credit packs only), no commercial licence; Starter $8 a month annual ($10 monthly, 900 credits); Creator $28 a month annual ($35 monthly, 3,150 credits, commercial licence); Fancy $76 a month annual ($95 monthly, 8,550+ credits, priority queue); one-time credit packs $25-$1,000; a standard clip runs 12 credits (480p, 5 seconds) to 80 credits (1080p, 10 seconds)",
+      "limits": "Maximum 1080p (480p on free); commercial use starts at Creator ($28 a month annual); Pikaformance maximum lip-sync length UNVERIFIED (sources say 15 seconds and 30 seconds); also a multi-model platform (Seedance, Wan, MiniMax, Google Omni Flash video beside Pika 2.5)",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "Luma Ray 3.2",
+      "kind": "video",
+      "clips": "5 or 10 second native clips; Modify Video runs up to 20 seconds at 1080p; up to 16 keyframes per clip",
+      "audio": "No — no native audio on text-to-video or image-to-video; Luma's own model guide tells users to use Veo or Kling when they need integrated sound; Modify Video and Reframe preserve the original audio",
+      "price": "Plus $30 a month ($25 annual, 10,000 credits), Pro $90 a month ($75 annual, 40,000 credits), Ultra $300 a month ($250 annual, 150,000 credits); no free tier (only trial credits inside subscriptions); API pay-per-clip: a 5-second Ray 3.2 clip at 720p SDR is $0.30; HDR costs 2 times SDR; HDR plus EXR export 3 times",
+      "limits": "Maximum native resolution 1080p — no native 4K; native 16-bit HDR (10-, 12- and 16-bit pipelines) with 16-bit EXR export in ACES2065-1; EDL export and a multi-clip timeline editor; Ray 3.14 has no character reference and no audio",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "Midjourney",
+      "kind": "image and video",
+      "clips": "V1 Video: each job makes four 5-second clips; each can be extended by about 4 seconds, up to four times (about 21 seconds total); motion is a low or high setting; video is image-to-video only — every video starts from a picture",
+      "audio": "No — every Midjourney video clip is silent; sound is always a post-generation step",
+      "price": "Basic $10 a month (3.3 Fast GPU hours, SD video only, no Relax, no Stealth), Standard $30 a month (15 hours, unlimited Relax images, HD video), Pro $60 a month (30 hours, Stealth mode, unlimited Relax images and SD video, 12 concurrent jobs), Mega $120 a month (60 hours); annual billing about 20 percent off; a video job costs about 8 GPU minutes (about $0.27 on Standard, $0.40 on Basic); companies earning over $1M a year must be on Pro or above",
+      "limits": "No free tier and no self-serve API; image model V8.2 default since 24 July 2026, native 2K, renders legible text; Niji 7 anime-focused launched January 2026; edit model (27 August 2026) takes up to four reference images; HD video needs Standard or above; Relax-mode video only on Pro and Mega, SD only; Disney / NBCUniversal / DreamWorks copyright suit status UNVERIFIED",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "Meta AI / Vibes",
+      "kind": "video",
+      "clips": "UNVERIFIED for generated clips — Meta publishes no length (one independent source says 2-10 seconds, another says 10 seconds stated); uploaded video for editing is capped at 10 seconds",
+      "audio": "Added in post — music, lip sync and voiceover are added as separate steps, not as native audio in the generation pass",
+      "price": "Free for everyday use, within a free daily usage limit that Meta does not publish as a number; Meta One (announced 15 September 2026): Core $7.99 a month, Premium $19.99 a month (US) for more image and video generation",
+      "limits": "Resolution UNVERIFIED — Meta publishes no resolution for generated clips; anything posted to the feed is public, and AI content is labelled; Meta has not named which model powers Vibes; Movie Gen is a research model, not a product; Muse Video was shown as an early preview in July 2026 and is not released; availability varies by country",
+      "status": "current as of Nov 2026; clip length and resolution UNVERIFIED"
+    },
+    {
+      "name": "CapCut",
+      "kind": "video editor and platform",
+      "clips": "Editor with 1080p export free; Pro adds 4K export at 60 frames per second",
+      "audio": "Depends on the model used inside CapCut (Seedance 2.5 has native audio)",
+      "price": "Basic editor free; Pro $19.99 a month ($179.99 a year, 1,200 AI credits a month, 1 TB storage, 4K export at 60 fps, commercial rights); Ultra $79 a month ($900 a year, 8,645 credits a month); Teams $12.49 per seat a month; Seedance 2.5 from $0.12 a second (first-month price) on Pro",
+      "limits": "The boundary between free basic AI colour features and Pro advanced AI features is unclear — do not teach a firm line; CapCut also lists third-party models including Veo 3.1, Kling 2.6, GPT Image 2 and 'Sora 2', which is UNVERIFIED and stale given Sora's discontinuation; Seedance US availability after launch UNVERIFIED (launch listed Europe, Asia, the Middle East and South America, not the US)",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "Creen AI",
+      "kind": "platform (resells other makers' models)",
+      "clips": "Video up to 10 seconds at 1080p; images up to 4K; up to 32 parallel image jobs and 16 parallel video jobs on Ultra",
+      "audio": "Depends on the model chosen inside Creen — Veo 3.1 and Kling 4.0 make native audio, while Midjourney video and Luma Ray 3.2 do not",
+      "price": "No sign-up to start; free daily quota on selected models only (one hands-on test, 8 October 2026, free account: 100 free credits a day; a video clip costs 50 credits; the house image model costs 1 credit); Plus $15 a month ($7.50 annual, 3,000 credits), Pro $29 a month ($14.50 annual, 8,000 credits), Max $59 a month ($29.50 annual, 20,000 credits), Ultra $189 a month ($94.50 annual, 80,000 credits); credit packs $10-$600",
+      "limits": "40+ third-party models behind one interface and one credit pool (28 video, 11 image, 7 audio models); it is not a model maker; its 'Sora 2' listing is UNVERIFIED; website and App Store prices disagree (App Store: Pro $169 a year, Max $349, Ultra $999) — verify on the surface actually used; no seed is shown, so results cannot be reproduced exactly",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "MiniMax Hailuo 2.3 and H3",
+      "kind": "video",
+      "clips": "Hailuo 2.3: 6 or 10 second clips at 768p, 6 seconds at 1080p; H3: 4-15 seconds at 2K",
+      "audio": "Hailuo 2.3: No — silent, no native audio; H3: Yes, stereo sound",
+      "price": "Hailuo 2.3 Fast $0.19 for 6 seconds at 768p, $0.32 for 10 seconds; Standard $0.28 for 6 seconds, $0.56 for 10 seconds; H3 about $0.08 a second through the MiniMax API",
+      "limits": "Hailuo 2.3 is silent; H3 is the newer model at 2K with stereo sound",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "Wan 3.0",
+      "kind": "video",
+      "clips": "2-30 seconds",
+      "audio": "Yes, with an audio toggle — the student chooses whether sound is made",
+      "price": "About $0.10 a second at 720p through Alibaba Model Studio",
+      "limits": "480p to 1080p; text-to-video with multi-shot control and strong first-frame and last-frame control; Wan 2.2 open weights run on your own GPU",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "HeyGen Video",
+      "kind": "video",
+      "clips": "Up to 15 seconds",
+      "audio": "Yes",
+      "price": "API $0.03-$0.09 a second",
+      "limits": "Launched 30 September 2026; limited detail in the dossier — treat the figures as specialist consensus, not vendor documentation, and re-check on heygen.com before quoting them",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "Higgsfield",
+      "kind": "platform (multi-model, 35+ models including Kling 4.0, Seedance 2.5, Veo 3.1, Wan and Hailuo)",
+      "clips": "Depends on the model chosen inside Higgsfield",
+      "audio": "Depends on the model chosen inside Higgsfield",
+      "price": "UNVERIFIED in exact figures — plans are given as Starter $15-$19 a month, Plus $49-$59 a month, Ultra $129-$375 a month; sources disagree on the exact figures; verify on higgsfield.ai before quoting any price; example cost inside Higgsfield: Kling 4.0 costs about 13.75 credits for 5 seconds at 720p on Plus",
+      "limits": "A platform, not a model maker; one credit balance across models",
+      "status": "current as of Nov 2026; prices UNVERIFIED"
+    },
+    {
+      "name": "Sora",
+      "kind": "video",
+      "clips": "Not applicable — discontinued",
+      "audio": "Not applicable — discontinued",
+      "price": "Not applicable — discontinued",
+      "limits": "DISCONTINUED — never recommend it. OpenAI notified API developers on 24 March 2026 that the Videos API and the Sora 2 models would be deprecated; the Sora web and app experiences were discontinued on 26 April 2026; the Videos API and the sora-2 and sora-2-pro models shut down on 24 September 2026, and no replacement model was named. Former users are directed to export at sora.chatgpt.com/sunset. Any workflow, listing or tutorial naming Sora — including 'Sora 2' on Creen AI and CapCut — is stale.",
+      "status": "DISCONTINUED"
+    },
+    {
+      "name": "fal",
+      "kind": "aggregator",
+      "clips": "Depends on the model called through fal",
+      "audio": "Depends on the model called through fal",
+      "price": "Per image, per second or per token, depending on the model",
+      "limits": "One API key for many models (FLUX, Seedream, GPT Image, Nano Banana, Kling, Seedance, Wan, Veo, Gemini Omni); fal removed its Veo 3.1 endpoints on 17 November 2026 — a workflow that calls Veo 3.1 through fal is stale after that date",
+      "status": "current as of Nov 2026"
+    },
+    {
+      "name": "Replicate",
+      "kind": "aggregator",
+      "clips": "Depends on the model called through Replicate",
+      "audio": "Depends on the model called through Replicate",
+      "price": "Per image, per second or per token, depending on the model",
+      "limits": "One API key for many models; no removal date is given for Replicate in the dossier — re-check its own catalogue at the time of use",
+      "status": "current as of Nov 2026"
+    }
+  ],
+  "unverified": [
+    "Runway Gen-4.5 native audio is UNVERIFIED — plan for silent clips plus a separate audio pass",
+    "Sora is discontinued (web/app 26 April 2026; API 24 September 2026) — never recommend it",
+    "Exact Higgsfield plan prices — sources disagree ($15 versus $19 Starter; $49 versus $59 Plus); verify on higgsfield.ai",
+    "Kling 4.0 adding subtitles and background music by default — carried from earlier research, not re-checked in the November 2026 dossier session",
+    "Meta AI / Vibes generated-clip length and resolution — Meta publishes neither",
+    "CapCut Seedance US availability after launch — the launch announcement did not list the US; later status not verified",
+    "Creen AI's 'Sora 2' listing and CapCut's 'Sora 2' listing — stale and unverified given Sora's discontinuation",
+    "Pikaformance maximum lip-sync length — sources say 15 seconds and 30 seconds",
+    "Midjourney Disney / NBCUniversal / DreamWorks suit status — carried, not re-checked in the November 2026 dossier session",
+    "Exact Veo 3.1 Quality 4K behaviour in Flow — 4K upscaling is Ultra-only; native 4K output exists on Vertex AI only",
+    "Runway top-tier plan contents — sources disagree (9,500 credits versus 2,250 credits plus Explore mode at $95 a month); verify on runway.com/pricing",
+    "Why OpenAI discontinued Sora — OpenAI's official pages give dates but no reason; operating-cost, user-base and compute-scarcity figures in independent coverage are UNVERIFIED as OpenAI's stated reason",
+    "The 'held breath' and 'a smile a beat late' markers of masking are UNVERIFIED as masking markers",
+    "The claim that novelty correlates negatively with anything is UNVERIFIED",
+    "No 'sample 8-10' rule for idea generation is verified — do not quote one"
+  ],
+  "creativityAxes": [
+    "originality",
+    "value",
+    "surprise",
+    "coherence",
+    "feasibility"
+  ],
+  "clicheRegister": [
+    "The perfume bottle on marble at golden hour.",
+    "The lone figure on a mountain ridge.",
+    "The cinematic look used as a substitute for a decision.",
+    "The twist that is really a withheld fact.",
+    "The hero who learns to believe in himself.",
+    "The robot that learns to feel.",
+    "The brand that empowers you.",
+    "The smiling family in the bright kitchen."
+  ]
+}

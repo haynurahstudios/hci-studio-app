@@ -1,0 +1,10 @@
+node_modules/
+.env
+data/hci-studio.db
+data/hci-studio.db-journal
+data/images/
+*.log
+.DS_Store
+secret.key
+data/secret.key
+data/sites/

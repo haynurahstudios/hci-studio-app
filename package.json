@@ -1,0 +1,1 @@
+{"dependencies":{"express":"^5.3.0"},"description":"HCI Studio — an independent web app that helps people write production-ready AI video prompts, step by step.","engines":{"node":">=22"},"main":"server.js","name":"hci-studio","private":true,"scripts":{"dev":"node server.js","start":"node server.js"},"type":"commonjs","version":"1.0.0"}

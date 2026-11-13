@@ -1,0 +1,31 @@
+HCI KNOWLEDGE BASE — EXTRACTION SUMMARY
+Source: HCI rebuild (Operating Instructions, Tool Registry, Blueprint, Testing) in
+~/workspace/your_files/hci_rebuild/, the five research dossiers in
+~/workspace/hci_rebuild_research/, and Lessons 8 and 9 PDFs
+(Haynurah_Studios_Module1_Lesson8_Colour_Grading_and_Mood.pdf,
+Haynurah_Studios_Module1_Lesson9_Understanding_AI_Visual_Styles.pdf).
+Output: ~/workspace/hci_studio_app/data/knowledge.json (valid JSON, all strings, no nulls).
+
+WHAT WAS EXTRACTED
+- Tagline, mission (students of Haynurah Studios Academy first), 3 modes (Thinking, Research, Direction).
+- 8 boundaries (the 6 from Operating Instructions section 3 plus the 2 extra from Blueprint section 3: never a single score for creativity; never teach a debunked rule).
+- 20 visual styles in Lesson 9 order, with use-when / avoid-when from the Operating Instructions and "not to be confused with" from Lesson 9.
+- 12 animation principles (Thomas and Johnston), 7 shot sizes, 6 camera angles, 10 camera movements.
+- Lens and depth of field: at the same framing, total depth of field is almost the same across focal lengths; perspective is set mainly by camera distance.
+- Lighting rule (soft warm directional light plus a gentle fill; never flat white light; never unfilled shadows), key-to-fill 1:1 / 2:1 / 4:1, and 6 setups (three-point, Rembrandt, butterfly, split, high-key, low-key).
+- 12 composition principles from the storytelling dossier.
+- Colour: rule (possibilities, not universal rules), the 8-part grading formula, and all 12 cinematic grading styles from Lesson 8 with mood and avoid notes.
+- Cinematography formula, directors formula, a 14-item production-ready prompt checklist, the 4-step order (character, environment/props, scenes/action sequences, prompts).
+- 13 disciplines with their IDs and scopes.
+- Behaviour: the 12-element framework (the dossier's 12 cross-cutting limits) plus the 5 rules given in the brief.
+- Story: Aristotle (did NOT invent three-act structure), Freytag, Field, Vogler's 12 stages (not Campbell's), McKee, Snyder's 15 beats.
+- 18 tools: Flow/Veo 3.1, Gemini Omni, Runway Gen-4.5, Kling 4.0, Seedance 2.5, Pika 2.5, Luma Ray 3.2, Midjourney, Meta AI/Vibes, CapCut, Creen AI, MiniMax, Wan 3.0, HeyGen, Higgsfield, Sora (discontinued), fal, Replicate — with clips, audio, prices and limits exactly as the registry states them.
+- 15 UNVERIFIED items (the registry's 10 plus the Sora reason, plus 3 more from the research: masking markers, novelty correlation, no sample 8-10 rule).
+- 5 creativity axes (originality, value, surprise, coherence, feasibility) and the 8 seeded cliche-register entries.
+
+WHAT COULD NOT BE FOUND IN THE SOURCES (left empty, not invented)
+- Style mixing: no good or bad style mixes exist anywhere in the rebuild sources or Lessons 8/9. The rule "one style leads, one supports, the mix must have a reason" is kept as given in the brief, but goodMixes and badMixes are empty arrays. Lesson 9 teaches keeping ONE style consistent across a multi-scene video; it never teaches mixing styles.
+- Shot sizes: the dossier calls it "the eight-size scale" but lists seven sizes (wide and long are given as one entry, "wide/long shot"). The file has 7 entries; the eighth is not separately described anywhere.
+- Kling 4.0 price: the brief's example said "from $6.99/month" but the registry says plans from about $8.80/month (Standard, 660 credits) and Pro $37/month. The registry figure was used; the $6.99 figure appears nowhere in the sources.
+- The directors formula and cinematography formula are reproduced exactly as given in the brief; they do not appear word-for-word in the rebuild sources (the same components appear in Blueprint section 8 and Instructions sections 10.1-10.2).
+- Behaviour "framework": there is no section literally called a 12-element framework in the sources; the 12 items used are the behaviour dossier's section 7 "cross-cutting limits", which is the only 12-item behaviour list in the sources.
