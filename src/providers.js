@@ -168,9 +168,10 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000 } =
   // OpenRouter: many free models behind one key, OpenAI-compatible.
   // Free tier, no card, sign in with Google (no email link).
   // Primary model: Nemotron 3 Ultra 550B (free). The free roster rotates,
-  // and free models often refuse with 429 when their upstream is busy,
-  // so on a 429 the next model in the list is tried. Free models also
-  // reason before answering, so the token budget gets generous headroom.
+  // and free models often refuse with 429 (rate limit) or 503 (the upstream
+  // provider is down) when their upstream is busy, so on a 429 or any 5xx
+  // the next model in the list is tried instead of giving up. Free models
+  // also reason before answering, so the token budget gets generous headroom.
   if (keyFor('openrouter', userKeys)) {
     try {
     const models = [
@@ -196,7 +197,9 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000 } =
         return { provider: 'openrouter', model, text: data.choices?.[0]?.message?.content || '' };
       } catch (e) {
         lastErr = e;
-        if (!/429/.test(String(e.message || ''))) throw e;
+        // A busy upstream answers 429 (rate limit) or 503 (provider down).
+        // Try the next free model instead of giving up on the first failure.
+        if (!/429|50[0-9]/.test(String(e.message || ''))) throw e;
       }
     }
     throw lastErr || new Error('OpenRouter: all free models refused.');
