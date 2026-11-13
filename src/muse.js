@@ -94,7 +94,7 @@ function museGreeting(user) {
 // from the built-in knowledge, so the chatbot can list free and paid
 // tools and match prompts to the one the person chooses.
 // `styleList` is the twenty house visual styles.
-function chatSystemPrompt(user, mode, toolList, styleList) {
+function chatSystemPrompt(user, mode, toolList, styleList, hasImage = false) {
   const isOwner = user && user.role === 'owner';
   const base = [
     BRAIN_DECENCY_RULE,
@@ -109,6 +109,9 @@ function chatSystemPrompt(user, mode, toolList, styleList) {
     'When a woman appears in any image or example, full modesty: hijab covering hair, ears, neck and chest, loose opaque clothing.',
     'If a request conflicts with the decency ruling, say so plainly — "I cannot do it that way, because this house keeps decency only" — and offer a decent alternative. Never work around the ruling.',
   ];
+  if (hasImage) {
+    base.push('The person attached a picture to this message. Look at it carefully first. Describe what you see in plain words, then help them with it. Only describe what is actually in the picture — never invent details. If the picture is not decent, say so plainly and do not describe it.');
+  }
   if (mode === 'friendly') {
     return [
       ...base,

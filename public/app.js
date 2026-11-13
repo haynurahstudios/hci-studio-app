@@ -4,7 +4,7 @@ const S = {
   status: null, knowledge: null, tutorials: [], platforms: [],
   user: null, access: null,
   studio: { step: 0, platform: '', platformOther: '', idea: '', character: '', props: '', world: '', scenes: [''], style: '', styleSupport: '', mixReason: '', shotSize: 'Medium shot', angle: 'Eye level', movement: 'Static', lens: '', lighting: '', composition: '', colourMood: '', behaviour: '', duration: '', prompt: null, imageUrl: null },
-  trends: null, directions: null, suggest: null, suggestKey: '', suggestBusy: '', chatLog: [], friendlyLog: [], chatSpace: 'work', chatFailed: null, museChat: [], greeting: '', sites: [], websiteDraft: null, websiteSections: [{ heading: '', text: '' }],
+  trends: null, directions: null, suggest: null, suggestKey: '', suggestBusy: '', chatLog: [], friendlyLog: [], chatSpace: 'work', chatFailed: null, chatImage: null, museChat: [], greeting: '', sites: [], websiteDraft: null, websiteSections: [{ heading: '', text: '' }],
 };
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -126,7 +126,7 @@ function chatLogHtml() {
       : 'Hi, what idea do you want to bring to life today?';
     return `<div class="chat-msg hci">${esc(greet)}</div>`;
   }
-  return log.map((m) => `<div class="chat-msg ${m.who === 'you' ? 'you' : 'hci'}">${renderChatText(m.text)}${m.failed ? `<p><button class="btn small" onclick="App.retryChat()">Try again</button></p>` : ''}</div>`).join('');
+  return log.map((m) => `<div class="chat-msg ${m.who === 'you' ? 'you' : 'hci'}">${m.image ? `<img class="chat-img" src="${m.image}" alt="Picture you sent">` : ''}${renderChatText(m.text)}${m.failed ? `<p><button class="btn small" onclick="App.retryChat()">Try again</button></p>` : ''}</div>`).join('');
 }
 
 // ---------------- Chat: the chatbot card ----------------
@@ -140,7 +140,8 @@ function chatCardHtml() {
     <div class="chat-tabs"><button class="pill ${S.chatSpace === 'work' ? 'on' : ''}" onclick="App.setSpace('work')">\u{1F4BC} Workspace</button><button class="pill ${S.chatSpace === 'friendly' ? 'on' : ''}" onclick="App.setSpace('friendly')">\u{1F4AC} Friendly chat</button></div>
     <div id="chatLog" class="chatlog">${chatLogHtml()}</div>
     ${loggedIn
-      ? `<div class="chat-row"><textarea id="chatInput" class="chat-input" rows="1" placeholder="${S.chatSpace === 'work' ? 'Tell Muse your idea\u2026' : 'How was your day?'}" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.chat();}"></textarea>
+      ? `${S.chatImage ? `<div class="chat-preview"><img src="${S.chatImage}" class="chat-img" alt="Picture to send"><button class="btn small ghost" onclick="App.chatImageRemove()">Remove</button></div>` : ''}
+    <div class="chat-row"><button class="btn chat-attach" title="Attach a picture" onclick="document.getElementById('chatImageInput').click()">🖼️</button><input type="file" id="chatImageInput" accept="image/*" style="display:none" onchange="App.chatImagePicked(event)"><textarea id="chatInput" class="chat-input" rows="1" placeholder="${S.chatSpace === 'work' ? 'Tell Muse your idea\u2026' : 'How was your day?'}" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.chat();}"></textarea>
     <button class="btn chat-send" onclick="App.chat()">Send</button></div>
     <p class="muted">${S.access ? esc(S.access.message || '') : ''}</p>`
       : `<p><a class="btn" href="#/auth">Log in / Sign up to chat</a></p>`}
@@ -521,27 +522,57 @@ window.App = {
   async chat() {
     const input = $('#chatInput');
     const text = input.value.trim();
-    if (!text) return;
+    const image = S.chatImage || null;
+    if (!text && !image) return;
     const space = S.chatSpace;
     const log = space === 'friendly' ? S.friendlyLog : S.chatLog;
-    log.push({ who: 'you', text }); input.value = '';
+    log.push({ who: 'you', text, image: image || undefined }); input.value = '';
+    S.chatImage = null;
     log.push({ who: 'hci', text: 'Thinking…' });
     route();
-    await this.sendChat(log, space, text);
+    await this.sendChat(log, space, text, image);
   },
+  // Attach a picture to the next chat message. The picture is made
+  // smaller on the phone first (longest side 1024px, JPEG) so it stays
+  // light on data, then it is sent with the message for the brain to read.
+  chatImagePicked(ev) {
+    const file = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Please pick a picture — JPEG, PNG, WebP or GIF.'); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 1024;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        S.chatImage = canvas.toDataURL('image/jpeg', 0.8);
+        route();
+      };
+      img.onerror = () => alert('That picture could not be read. Try another one.');
+      img.src = reader.result;
+    };
+    reader.onerror = () => alert('That picture could not be read. Try another one.');
+    reader.readAsDataURL(file);
+  },
+  chatImageRemove() { S.chatImage = null; route(); },
   // Sends one chat message. If the network fails, the message is NOT lost:
   // the failed answer stays with a "Try again" button, and the app retries
   // by itself when the network comes back (the 'online' listener in boot).
-  async sendChat(log, space, text) {
+  async sendChat(log, space, text, image) {
     try {
       const history = log.slice(0, -1).slice(-10).map((m) => ({ role: m.who === 'you' ? 'user' : 'assistant', content: m.text }));
-      const r = await api('/api/chat', 'POST', { message: text, mode: space, history });
+      const r = await api('/api/chat', 'POST', { message: text, mode: space, history, image: image || undefined });
       log[log.length - 1] = { who: 'hci', text: r.reply };
       S.chatFailed = null;
     } catch (e) {
       const failed = /fetch|network|offline/i.test(String(e.message || ''));
       log[log.length - 1] = { who: 'hci', text: e.paywall ? (e.data?.message || e.message) : ('Could not reach the studio: ' + e.message + '. Check your network and try again.'), failed, retryText: text, retrySpace: space };
-      if (failed) S.chatFailed = { log, space, text };
+      if (failed) S.chatFailed = { log, space, text, image: image || null };
     }
     route();
   },
@@ -552,7 +583,7 @@ window.App = {
     if (log.length && log[log.length - 1].failed) log.pop();
     log.push({ who: 'hci', text: 'Thinking…' });
     route();
-    await this.sendChat(log, f.space, f.text);
+    await this.sendChat(log, f.space, f.text, f.image);
   },
   setSpace(space) { S.chatSpace = space; route(); },
   async setPrivacy(on) {

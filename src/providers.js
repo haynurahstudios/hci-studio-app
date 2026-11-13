@@ -106,10 +106,63 @@ async function fetchJson(url, options, timeoutMs = TIMEOUT_MS) {
 // tried instead of failing the whole call — one bad key must never stop
 // the brain while another good key is set.
 // Returns { provider, model, text }.
-async function think(messages, { system, temperature = 0.7, maxTokens = 2000 } = {}, userKeys = null) {
+// Pictures: the last user message carries the picture, in the
+// OpenAI-compatible vision format (text + image_url). Earlier messages
+// stay plain text — the brain sees the picture in front of it now, not
+// earlier ones.
+function buildVisionMessages(messages, image) {
+  const out = messages.map((m) => ({ role: m.role, content: m.content }));
+  for (let i = out.length - 1; i >= 0; i--) {
+    if (out[i].role === 'user') {
+      out[i] = { role: 'user', content: [{ type: 'text', text: out[i].content || 'What is in this picture?' }, { type: 'image_url', image_url: { url: image } }] };
+      break;
+    }
+  }
+  return out;
+}
+
+async function think(messages, { system, temperature = 0.7, maxTokens = 2000, image = null } = {}, userKeys = null) {
   // The decency ruling goes first, before any other instruction.
   const sys = BRAIN_DECENCY_RULE + '\n' + (system || 'You are HCI, Haynurah Creative Intelligence. Think in plain words. Never invent evidence. Never present an unverified claim as fact.');
   let lastProviderErr = null;
+  // PICTURES: when a message carries a picture, only the models that can
+  // SEE are asked. OpenAI (gpt-4o-mini) first, then the free OpenRouter
+  // vision models — Super VL first, then Nano Omni. The text-only models
+  // are skipped, because sending them a picture would fail. A picture
+  // costs the same as one chat for the limits (it is one brain call).
+  if (image) {
+    const visionMessages = buildVisionMessages(messages, image);
+    if (keyFor('openai', userKeys)) {
+      try {
+        const data = await fetchJson('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', authorization: 'Bearer ' + keyFor('openai', userKeys) },
+          body: JSON.stringify({ model: 'gpt-4o-mini', temperature, max_tokens: maxTokens, messages: [{ role: 'system', content: sys }, ...visionMessages] }),
+        });
+        return { provider: 'openai', model: 'gpt-4o-mini', text: data.choices?.[0]?.message?.content || '' };
+      } catch (e) { lastProviderErr = e; }
+    }
+    if (keyFor('openrouter', userKeys)) {
+      const visionTeam = ['nvidia/nemotron-3.5-super-vl:free', 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free'];
+      for (const model of visionTeam) {
+        try {
+          const data = await fetchJson('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              authorization: 'Bearer ' + keyFor('openrouter', userKeys),
+              'HTTP-Referer': 'https://hci-studio-app-production.up.railway.app/',
+              'X-Title': 'HCI Studio',
+            },
+            body: JSON.stringify({ model, temperature, max_tokens: Math.max(maxTokens, 4000), messages: [{ role: 'system', content: sys }, ...visionMessages] }),
+          });
+          const text = data.choices?.[0]?.message?.content || '';
+          if (text) return { provider: 'openrouter', model, text };
+        } catch (e) { lastProviderErr = e; }
+      }
+    }
+    throw lastProviderErr || new Error('No picture-reading model could be reached right now. Please try again.');
+  }
   if (keyFor('anthropic', userKeys)) {
     try {
     const data = await fetchJson('https://api.anthropic.com/v1/messages', {
@@ -337,4 +390,4 @@ async function createImage(prompt, style, userKeys = null) {
   throw new Error('The image provider returned no image.');
 }
 
-module.exports = { availableProviders, hasBrain, brainStatus, think, research, createImage, keyFor, PROVIDER_META, logUsage };
+module.exports = { availableProviders, hasBrain, brainStatus, think, research, createImage, keyFor, PROVIDER_META, logUsage, buildVisionMessages };

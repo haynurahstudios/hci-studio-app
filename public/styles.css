@@ -73,4 +73,8 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding:22px 16px 40px;t
 .chat-row{display:flex;gap:8px;align-items:flex-end}
 .chat-row .chat-input{flex:1;min-height:48px}
 .chat-send{border-radius:24px;padding:12px 18px;white-space:nowrap}
+.chat-attach{border-radius:24px;padding:12px 13px;white-space:nowrap}
+.chat-img{max-width:100%;border-radius:10px;margin:4px 0;display:block}
+.chat-preview{margin:6px 0}
+.chat-preview .chat-img{max-width:180px}
 .chat-input{font-size:1.05rem;padding:12px 16px;min-height:48px;line-height:1.5;border-radius:24px}

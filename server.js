@@ -40,7 +40,7 @@ const { DECENCY_STATUS } = require('./src/ruling');
 const sleep = require('./src/sleep');
 
 const app = express();
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '3mb' })); // 3 MB so a picture (up to ~2 MB) reaches the chat validation, which rejects it plainly if it is too big.
 app.use(auth.authMiddleware);
 app.use(sleep.sleepMiddleware);
 
@@ -309,21 +309,32 @@ app.post('/api/chat', auth.requireLogin, async (req, res) => {
   }
   const over = limits.checkLimit(req.user, 'chat');
   if (over) return res.status(429).json({ error: over.message });
+  let message = String(req.body?.message || '').trim();
+  // A picture is optional. It must be a data URL of a real picture
+  // (JPEG, PNG, WebP or GIF) and smaller than about 1.5 MB, so it stays
+  // light on data. The picture is sent to the brain with this message
+  // only — it is not stored, and earlier pictures are not remembered.
+  // The request itself is checked first, before the brain is checked,
+  // so a bad picture or an empty message gets a plain 400 either way.
+  const image = typeof req.body?.image === 'string' ? req.body.image : null;
+  if (image && (!/^data:image\/(jpeg|png|webp|gif);base64,/.test(image) || image.length > 2000000)) {
+    return res.status(400).json({ error: 'That picture could not be read. Send a JPEG, PNG, WebP or GIF picture, smaller than about 1.5 MB.' });
+  }
+  if (!message && !image) return res.status(400).json({ error: 'Write a message first, or attach a picture.' });
+  if (!message) message = 'What is in this picture?';
   const keys = userKeysFor(req);
   if (!providers.hasBrain(keys)) {
     return res.status(503).json({
       error: 'Muse needs a key to answer live. No AI key is set — add your own key in Settings, or ask the owner to set one. The learning pages still work without a key.',
     });
   }
-  const message = String(req.body?.message || '').trim();
-  if (!message) return res.status(400).json({ error: 'Write a message first.' });
   const history = Array.isArray(req.body?.history)
     ? req.body.history.slice(-10).filter((m) => m && typeof m.content === 'string' && (m.role === 'user' || m.role === 'assistant')).map((m) => ({ role: m.role, content: m.content.slice(0, 1500) }))
     : [];
   try {
     const out = await providers.think(
       [...history, { role: 'user', content: message }],
-      { system: muse.chatSystemPrompt(req.user, mode, toolListText(), styleListText()), temperature: 0.7, maxTokens: 1200 },
+      { system: muse.chatSystemPrompt(req.user, mode, toolListText(), styleListText(), !!image), temperature: 0.7, maxTokens: 1200, image: image || undefined },
       keys
     );
     logUsage(req.user.id, 'chat', out.provider, out.model, message.slice(0, 80), true);
