@@ -4,7 +4,7 @@ const S = {
   status: null, knowledge: null, tutorials: [], platforms: [],
   user: null, access: null,
   studio: { step: 0, platform: '', platformOther: '', idea: '', character: '', props: '', world: '', scenes: [''], style: '', styleSupport: '', mixReason: '', shotSize: 'Medium shot', angle: 'Eye level', movement: 'Static', lens: '', lighting: '', composition: '', colourMood: '', behaviour: '', duration: '', prompt: null, imageUrl: null },
-  trends: null, directions: null, suggest: null, suggestKey: '', suggestBusy: '', chatLog: [], friendlyLog: [], chatSpace: 'work', museChat: [], greeting: '', sites: [], websiteDraft: null, websiteSections: [{ heading: '', text: '' }],
+  trends: null, directions: null, suggest: null, suggestKey: '', suggestBusy: '', chatLog: [], friendlyLog: [], chatSpace: 'work', chatFailed: null, museChat: [], greeting: '', sites: [], websiteDraft: null, websiteSections: [{ heading: '', text: '' }],
 };
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -39,6 +39,9 @@ async function boot() {
   if (S.user) { try { S.greeting = (await api('/api/muse/greeting')).greeting; } catch (e) {} }
   renderUserChip();
   window.addEventListener('hashchange', route);
+  // When the network comes back, retry a chat message that failed while
+  // it was off — the user should never be stuck on "Failed to fetch".
+  window.addEventListener('online', () => { if (S.chatFailed) App.retryChat(); });
   route();
 }
 
@@ -117,7 +120,7 @@ function chatLogHtml() {
       : 'Hi, what idea do you want to bring to life today?';
     return `<div class="chat-msg hci"><b>Muse:</b> ${esc(greet)}</div>`;
   }
-  return log.map((m) => `<div class="chat-msg ${m.who === 'you' ? 'you' : 'hci'}"><b>${m.who === 'you' ? 'You' : 'Muse'}:</b> ${renderChatText(m.text)}</div>`).join('');
+  return log.map((m) => `<div class="chat-msg ${m.who === 'you' ? 'you' : 'hci'}"><b>${m.who === 'you' ? 'You' : 'Muse'}:</b> ${renderChatText(m.text)}${m.failed ? `<p><button class="btn small" onclick="App.retryChat()">Try again</button></p>` : ''}</div>`).join('');
 }
 
 async function vHome() {
@@ -508,12 +511,32 @@ window.App = {
     log.push({ who: 'you', text }); input.value = '';
     log.push({ who: 'hci', text: 'Thinking…' });
     route();
+    await this.sendChat(log, space, text);
+  },
+  // Sends one chat message. If the network fails, the message is NOT lost:
+  // the failed answer stays with a "Try again" button, and the app retries
+  // by itself when the network comes back (the 'online' listener in boot).
+  async sendChat(log, space, text) {
     try {
       const history = log.slice(0, -1).slice(-10).map((m) => ({ role: m.who === 'you' ? 'user' : 'assistant', content: m.text }));
       const r = await api('/api/chat', 'POST', { message: text, mode: space, history });
       log[log.length - 1] = { who: 'hci', text: r.reply };
-    } catch (e) { log[log.length - 1] = { who: 'hci', text: e.paywall ? (e.data?.message || e.message) : e.message }; }
+      S.chatFailed = null;
+    } catch (e) {
+      const failed = /fetch|network|offline/i.test(String(e.message || ''));
+      log[log.length - 1] = { who: 'hci', text: e.paywall ? (e.data?.message || e.message) : ('Could not reach the studio: ' + e.message + '. Check your network and try again.'), failed, retryText: text, retrySpace: space };
+      if (failed) S.chatFailed = { log, space, text };
+    }
     route();
+  },
+  async retryChat() {
+    const f = S.chatFailed;
+    if (!f) return;
+    const log = f.log;
+    if (log.length && log[log.length - 1].failed) log.pop();
+    log.push({ who: 'hci', text: 'Thinking…' });
+    route();
+    await this.sendChat(log, f.space, f.text);
   },
   setSpace(space) { S.chatSpace = space; route(); },
   async setPrivacy(on) {
