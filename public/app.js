@@ -3,8 +3,7 @@
 const S = {
   status: null, knowledge: null, tutorials: [], platforms: [],
   user: null, access: null,
-  studio: { step: 0, platform: '', platformOther: '', idea: '', character: '', props: '', world: '', scenes: [''], style: '', styleSupport: '', mixReason: '', shotSize: 'Medium shot', angle: 'Eye level', movement: 'Static', lens: '', lighting: '', composition: '', colourMood: '', behaviour: '', duration: '', prompt: null, imageUrl: null },
-  trends: null, directions: null, suggest: null, suggestKey: '', suggestBusy: '', chatLog: [], friendlyLog: [], chatSpace: 'work', chatFailed: null, museChat: [], greeting: '', sites: [], websiteDraft: null, websiteSections: [{ heading: '', text: '' }],
+  chatLog: [], friendlyLog: [], chatSpace: 'work', chatFailed: null, greeting: '', sites: [], websiteDraft: null, websiteSections: [{ heading: '', text: '' }],
 };
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -69,12 +68,12 @@ function route() {
   const page = (location.hash || '#/home').replace('#/', '').split('?')[0] || 'home';
   setNav(page);
   const view = $('#view');
-  const pages = { home: vHome, studio: vStudio, styles: vStyles, tools: vTools, learn: vLearn, projects: vProjects, websites: vWebsites, 'get-hci': vGetHci, settings: vSettings, admin: vAdmin, auth: vAuth };
+  const pages = { home: vHome, styles: vStyles, tools: vTools, learn: vLearn, projects: vProjects, websites: vWebsites, 'get-hci': vGetHci, settings: vSettings, admin: vAdmin, auth: vAuth };
   const fn = pages[page] || vHome;
   Promise.resolve(fn()).then((html) => { view.innerHTML = html; afterRender(page); }).catch((e) => { view.innerHTML = `<div class="notice warn">Something went wrong: ${esc(e.message)}</div>`; });
 }
 
-function afterRender(page) { if (page === 'studio') { renderStudioStep(); loadMuseTip(S.studio.step); } }
+function afterRender(page) {}
 
 // ---------------- Home ----------------
 function brainCard() {
@@ -131,7 +130,7 @@ async function vHome() {
     <div class="tag">IMAGINE WITHOUT LIMITS.<br>RESEARCH WITH INTELLIGENCE.<br>CREATE WITH DIRECTION.</div>
     <p style="margin-top:14px">HCI exists for the students of Haynurah Studios Academy, who will not read everything. It teaches in plain words — it explains, answers, directs and writes your prompts for you.</p>
     <p><b>The ruling of this house, above everything else: decency only.</b> Every description decent, every person dressed decently and modestly — always.</p>
-    <p><a class="btn" href="#/studio">Open the Studio</a> <a class="btn ghost" href="#/learn">Learn cinematography</a></p>
+    <p><a class="btn ghost" href="#/learn">Learn cinematography</a></p>
   </div>
   ${accessCard()}
   ${brainCard()}
@@ -144,181 +143,14 @@ async function vHome() {
     <button class="btn" onclick="App.chat()">Send</button>
     <p class="muted">${S.access ? esc(S.access.message || '') : 'Log in to chat.'} ${S.access && S.access.tier === 'basic' ? 'The learning pages stay free.' : ''}</p>
   </div>
-  <div class="card"><h3>What the Studio does</h3>
+  <div class="card"><h3>What the chatbot does</h3>
     <p>1. It thinks for itself — it searches what is trending right now and turns it into fresh directions.<br>
     2. It asks which platform you are making for, and shapes every prompt for that platform.<br>
-    3. It walks you step by step: character, then props, then the world, then scenes, then the video prompt — each step locked before the next.<br>
+    3. It walks you through the idea in conversation: script, style, character, the AI tool to use, then the whole prompts.<br>
     4. It teaches you everything for cinematography and AI video creation — styles, angles, light, colour, behaviour, directing.</p>
-    <p class="muted">Video generation is paused — it needs a server or a heavy device. The studio hands you a production-ready prompt for Kling, Flow or Creen AI instead, and says so plainly.</p>
+    <p class="muted">Video generation is paused — it needs a server or a heavy device. The chatbot hands you a production-ready prompt for Kling, Flow or Creen AI instead, and says so plainly.</p>
   </div>
   ${k ? `<div class="card"><h3>The craft, in one line each</h3><p><b>Cinematography formula:</b> ${esc(k.cinematographyFormula || '')}</p><p><b>Director's formula:</b> ${esc(k.directorsFormula || '')}</p></div>` : ''}`;
-}
-
-// ---------------- Studio ----------------
-const STEP_NAMES = ['Platform', 'Idea', 'Character', 'Props', 'World', 'Scenes', 'Prompt'];
-function stepDone(i) {
-  const d = S.studio;
-  if (i === 0) return !!d.platform && (d.platform !== 'other' || !!String(d.platformOther || '').trim());
-  if (i === 1) return !!d.idea.trim();
-  if (i === 2) return !!d.character.trim();
-  if (i === 3) return !!d.props.trim();
-  if (i === 4) return !!d.world.trim();
-  if (i === 5) return d.scenes.some((s) => s.trim());
-  return !!d.prompt;
-}
-// Guided Studio: the studio leads. The card above each step's field asks
-// the brain to suggest that step from the idea — the student only picks,
-// edits, or says yes. The suggestion is stored in S.suggest so it survives
-// re-renders; S.suggestKey stops the auto-suggest from firing twice.
-function guideHtml(step) {
-  const s = S.suggest;
-  const busy = S.suggestBusy === step;
-  let inner = '';
-  if (s && s.step === step && !busy) {
-    if (s.raw) inner = `<div class="card"><h3>${esc(s.question || 'The studio suggests')}</h3><pre class="prompt">${esc(s.raw)}</pre></div>`;
-    else inner = `<div class="card"><h3>${esc(s.question || 'The studio suggests')}</h3>${(s.suggestions || []).map((g, i) => `<div style="border-top:1px solid var(--line);padding-top:10px"><b>${esc(g.title || '')}</b><p>${esc(g.text || '')}</p>${g.why ? `<p class="muted">${esc(g.why)}</p>` : ''}<button class="btn small" onclick="App.useSuggestion(${i})">Use this</button></div>`).join('')}<p><button class="btn ghost" onclick="App.suggest('${step}')">Try another suggestion</button></p></div>`;
-  }
-  return `<div class="card gold"><h3>Let the studio lead</h3><p class="muted">You do not have to bring everything. The studio suggests this step for you — pick one, edit it, or say yes.</p><button class="btn" onclick="App.suggest('${step}')">${busy ? 'Thinking…' : '✨ Suggest for me'}</button><div id="suggestBox">${busy ? '<p class="muted">The studio is thinking…</p>' : inner}</div></div>`;
-}
-
-function renderStudioStep() {
-  const holder = $('#studioSteps');
-  if (!holder) return;
-  const d = S.studio;
-  holder.innerHTML = `<div class="steps">${STEP_NAMES.map((n, i) => `<span class="${i === d.step ? 'on' : stepDone(i) ? 'done' : ''}">${i + 1}. ${n}</span>`).join('')}</div>`;
-  const body = $('#studioBody');
-  if (!body) return;
-  let html = '';
-  if (d.step === 0) {
-    html = `<h3>Step 1 — Which platform are you making for?</h3>
-    <p class="muted">The app asks first, because a Kling prompt is not a Runway prompt. Pick one — all ten are listed, and if yours is not there, choose Other and type any platform name. There is no limit.</p>
-    <div>${S.platforms.map((p) => `<button class="pill ${d.platform === p.id ? 'on' : ''}" onclick="App.setPlatform('${p.id}')">${esc(p.name)}</button>`).join('')}<button class="pill ${d.platform === 'other' ? 'on' : ''}" onclick="App.setPlatform('other')">Other — another platform</button></div>
-    ${d.platform === 'other' ? `<div class="card"><label>What platform are you making for?</label><input id="fPlatformOther" placeholder="e.g. Hailuo, Vidu, Firefly — any platform" value="${esc(d.platformOther)}"><button class="btn" onclick="App.setOtherPlatform()">Use this platform</button><p class="muted">Any platform works. The prompt is shaped with general rules, and it tells you to verify clip length, audio and price on the platform before spending.</p></div>` : ''}
-    ${d.platform && d.platform !== 'other' ? `<div class="card">${(() => { const p = S.platforms.find((x) => x.id === d.platform); return p ? `<b>${esc(p.name)}</b><br>Clips: ${esc(p.clip)}<br>Audio: ${esc(p.audio)}` : ''; })()}</div>` : ''}
-    ${d.platform === 'other' && d.platformOther ? `<div class="card"><b>${esc(d.platformOther)}</b><br>Your own platform — not in the registry yet. Shaped with general rules: one short clip, one shot, one camera move.</div>` : ''}`;
-  } else if (d.step === 1) {
-    html = `<h3>Step 2 — Your idea</h3>
-    <p class="muted">Type your own idea — or let the studio think for itself and search what is trending right now.</p>
-    <label>Your idea</label><textarea id="fIdea" placeholder="e.g. A market woman sells lamps that show memories…">${esc(d.idea)}</textarea>
-    <button class="btn" onclick="App.saveIdea()">Use this idea</button>
-    <button class="btn ghost" onclick="App.trending()">Search what's trending now</button>
-    <div id="trendBox">${S.trends ? renderTrends() : ''}</div>
-    <div id="dirBox">${S.directions ? renderDirections() : ''}</div>`;
-  } else if (d.step === 2) {
-    html = `<h3>Step 3 — Character (locked in exact words)</h3>
-    <p class="muted">Describe the character exactly — face, hair, outfit, accessories, skin tone. The exact same face, hair, outfit, accessories and skin tone in every shot.</p>
-    ${guideHtml('character')}
-    <label>Character lock</label><textarea id="fCharacter" placeholder="e.g. Amina, a market woman in her forties, warm medium-brown skin, dark brown eyes, a deep teal hijab covering her hair, ears, neck and chest, a loose long charcoal-grey dress with thin gold trim at the cuffs, a small brass key on a cord around her neck">${esc(d.character)}</textarea>
-    <button class="btn" onclick="App.nextStep(2,'character','fCharacter')">Lock character →</button>`;
-  } else if (d.step === 3) {
-    html = `<h3>Step 4 — Props (locked in exact words)</h3>
-    <p class="muted">A prop lock gets the same treatment as a character: the same object in every shot.</p>
-    ${guideHtml('props')}
-    <label>Prop lock</label><textarea id="fProps" placeholder="e.g. A small brass oil lamp with a cloth-wrapped handle, warm amber glass, the same lamp in every shot">${esc(d.props)}</textarea>
-    <button class="btn" onclick="App.nextStep(3,'props','fProps')">Lock props →</button>`;
-  } else if (d.step === 4) {
-    html = `<h3>Step 5 — The world</h3>
-    <p class="muted">The environment and the whole world of the story.</p>
-    ${guideHtml('world')}
-    <label>The world</label><textarea id="fWorld" placeholder="e.g. A busy night market at dusk, stalls lit by warm lamps, smoke and spice in the air, crowds moving slowly">${esc(d.world)}</textarea>
-    <button class="btn" onclick="App.nextStep(4,'world','fWorld')">Lock the world →</button>`;
-  } else if (d.step === 5) {
-    html = `<h3>Step 6 — Scenes and action sequences</h3>
-    <p class="muted">The actions in order — visible and timed. One line per action.</p>
-    ${guideHtml('scenes')}
-    ${d.scenes.map((s, i) => `<label>Action ${i + 1}</label><textarea id="fScene${i}" placeholder="e.g. She lifts the lamp and its light falls across the boy's face">${esc(s)}</textarea>`).join('')}
-    <button class="btn ghost" onclick="App.addScene()">+ Add another action</button>
-    <button class="btn" onclick="App.saveScenes()">Lock scenes →</button>`;
-  } else {
-    html = `<h3>Step 7 — The video prompt</h3>
-    <div class="grid two">
-      <div><label>Shot size</label><select id="fShot">${['Extreme wide shot', 'Wide shot', 'Full shot', 'Medium wide shot', 'Medium shot', 'Medium close-up', 'Close-up', 'Extreme close-up'].map((o) => `<option ${d.shotSize === o ? 'selected' : ''}>${o}</option>`).join('')}</select></div>
-      <div><label>Camera angle</label><select id="fAngle">${['Eye level', 'Low angle', 'High angle', "Bird's-eye view", 'Dutch angle', 'Over-the-shoulder'].map((o) => `<option ${d.angle === o ? 'selected' : ''}>${o}</option>`).join('')}</select></div>
-      <div><label>Camera movement</label><select id="fMove">${['Static', 'Pan', 'Tilt', 'Tracking shot', 'Dolly in', 'Dolly out', 'Crane shot', 'Handheld', 'Slow push-in'].map((o) => `<option ${d.movement === o ? 'selected' : ''}>${o}</option>`).join('')}</select></div>
-      <div><label>Visual style (leads)</label><select id="fStyle">${(S.knowledge?.styles || []).map((s) => `<option value="${esc(s.name)}" ${d.style === s.name ? 'selected' : ''}>${esc(s.name)}</option>`).join('') || '<option>Cinematic realism</option>'}</select></div>
-      <div><label>Supporting style (optional)</label><select id="fStyleSup"><option value="">— none —</option>${(S.knowledge?.styles || []).map((s) => `<option value="${esc(s.name)}" ${d.styleSupport === s.name ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></div>
-      <div><label>Length</label><select id="fDur">${['10 seconds', '8 seconds', '15 seconds', '30 seconds', '60 seconds'].map((o) => `<option ${d.duration === o ? 'selected' : ''}>${o}</option>`).join('')}</select></div>
-    </div>
-    <label>Lighting</label><textarea id="fLight" placeholder="Soft warm directional light with a gentle fill…">${esc(d.lighting)}</textarea>
-    <label>Colour and mood</label><input id="fColour" value="${esc(d.colourMood)}" placeholder="e.g. Warm filmic colour">
-    <label>Behaviour (how feelings show)</label><textarea id="fBehav" placeholder="e.g. Her hands stop in the air; her smile arrives a beat late">${esc(d.behaviour)}</textarea>
-    <button class="btn" onclick="App.assemble()">Build my production-ready prompt</button>
-    <div id="promptBox">${d.prompt ? renderPrompt() : ''}</div>`;
-  }
-  body.innerHTML = html;
-  // Guided Studio: when a step opens with an empty field, the studio
-  // suggests that step on its own — once per idea and step.
-  if (d.step >= 2 && d.step <= 5 && d.idea.trim()) {
-    const stepName = STEP_NAMES[d.step].toLowerCase();
-    const key = d.idea + '|' + stepName;
-    const fieldEmpty = stepName === 'scenes' ? !d.scenes.some(Boolean) : !String(d[stepName] || '').trim();
-    if (fieldEmpty && S.suggestKey !== key && !S.suggestBusy) {
-      S.suggestKey = key;
-      setTimeout(() => App.suggest(stepName), 50);
-    }
-  }
-  loadMuseTip(d.step);
-}
-
-function renderTrends() {
-  if (!S.trends) return '';
-  if (S.trends.available === false) return `<div class="notice warn">${esc(S.trends.reason)}</div>`;
-  return `<div class="card"><h3>Trending right now <span class="muted">(${esc(S.trends.source || '')})</span></h3>
-  ${S.trends.trends.map((t) => `<p><b>${esc(t.title)}</b>${t.url ? ` — <a href="${esc(t.url)}" target="_blank" rel="noopener">source</a>` : ''}<br><span class="muted">${esc(t.why || '')}</span></p>`).join('')}
-  <p class="muted">${esc(S.trends.note || '')}</p>
-  <button class="btn" onclick="App.directions()">Turn this into three directions</button></div>`;
-}
-function renderDirections() {
-  const r = S.directions;
-  if (!r) return '';
-  if (r.raw) return `<div class="card"><h3>Three directions</h3><pre class="prompt">${esc(r.raw)}</pre></div>`;
-  return `<div class="card"><h3>Three directions</h3>
-  ${(r.directions || []).map((d, i) => `<div style="border-top:1px solid var(--line);padding-top:10px">
-    <h3>${i + 1}. ${esc(d.title)}</h3><p>${esc(d.story || '')}</p>
-    <p><b>Style mix:</b> ${esc(d.styleLead || '')} leads, ${esc(d.styleSupport || '')} supports — ${esc(d.mixWhy || '')}</p>
-    <p>${Object.entries(d.scores || {}).map(([k, v]) => `<span class="score ${v}">${esc(k)}: ${esc(v)}</span>`).join(' ')}</p>
-    <button class="btn small" onclick="App.useDirection(${i})">Use this direction</button></div>`).join('')}
-  <p><b>Recommended:</b> ${esc(r.recommendation || '')} &nbsp;·&nbsp; <b>Strongest alternative:</b> ${esc(r.alternative || '')}</p></div>`;
-}
-function renderPrompt() {
-  const p = S.studio.prompt;
-  if (!p) return '';
-  return `<div class="card gold"><h3>Your production-ready prompt</h3>
-  <pre class="prompt">${esc(p.prompt)}</pre>
-  <p>${(p.checks || []).map((c) => `<span class="${c.pass ? 'ok' : 'bad'}">${c.pass ? '✓' : '✗'} ${esc(c.name)}</span><br>`).join('')}</p>
-  <p><b>${p.productionReady ? 'Production-ready.' : 'Not production-ready yet — fix the failed checks above.'}</b></p>
-  <button class="btn" onclick="App.copyPrompt()">Copy prompt</button>
-  <button class="btn ghost" onclick="App.saveProject()">Save to My Projects</button>
-  <button class="btn ghost" onclick="App.makeImage()">Create an image of this scene</button>
-  <button class="btn ghost" onclick="App.websiteForProject()">Build a website for this project</button>
-  <div id="imgBox">${S.studio.imageUrl ? `<p><img src="${esc(S.studio.imageUrl)}" style="width:100%;border-radius:12px" alt="Generated scene image"></p>` : ''}</div>
-  <p class="muted">Video generation is paused — it needs a server or a heavy device. Take this prompt to ${esc(p.platform?.name || 'your platform')} and generate the clip there.</p></div>`;
-}
-
-async function vStudio() {
-  if (!S.user) return needLogin();
-  if (S.access && !S.access.deepAllowed) {
-    return `<h1>Studio</h1>` + paywallCard({ data: { message: S.access.message } }) + `<p><a class="btn" href="#/learn">Keep learning for free</a></p>`;
-  }
-  return `<h1>Studio — write your prompt, step by step</h1>
-  <p class="muted">Paste your idea and the studio leads — it suggests the character, asks how you want the environment to be, and brings you options at every step. You only pick or say yes. No step is skipped; each step locks before the next begins.</p>
-  <div class="card gold" id="museBox"><p class="muted">Muse is with you…</p></div>
-  <div id="studioSteps"></div><div id="studioBody"></div>
-  <div class="card"><h3>Ask Muse about this step</h3>
-    <div id="museChatLog">${S.museChat.map((m) => `<p><b>${m.who === 'you' ? 'You' : 'Muse'}:</b> ${esc(m.text)}</p>`).join('')}</div>
-    <input id="museChatInput" placeholder="Ask Muse anything about this step…" onkeydown="if(event.key==='Enter')App.askMuse()">
-    <button class="btn" onclick="App.askMuse()">Ask Muse</button>
-  </div>
-  <p><button class="btn ghost" onclick="App.prevStep()">← Back</button></p>`;
-}
-
-async function loadMuseTip(step) {
-  const box = $('#museBox');
-  if (!box) return;
-  try {
-    const tip = await api('/api/muse/tip?step=' + step);
-    box.innerHTML = `<h3>${esc(tip.title)}</h3><p>${esc(tip.text)}</p>`;
-  } catch (e) { box.innerHTML = `<h3>Muse says</h3><p>Take it one step at a time, love. Write this step in exact words, then lock it.</p>`; }
 }
 
 // ---------------- Styles / Tools / Learn ----------------
@@ -342,10 +174,10 @@ async function vTools() {
   const k = S.knowledge;
   return `<h1>Tools — which tool for which job</h1>
   <p class="muted">November 2026 registry. Verify on the vendor's own documentation, on the plan actually used, before spending.</p>
-  <div class="card"><h3>Platforms the Studio writes for</h3>
+  <div class="card"><h3>Platforms the chatbot writes for</h3>
   <table><tr><th>Platform</th><th>Clips</th><th>Audio</th></tr>
   ${S.platforms.map((p) => `<tr><td>${esc(p.name)}</td><td>${esc(p.clip)}</td><td>${esc(p.audio)}</td></tr>`).join('')}</table>
-  <p class="muted">Making for another platform? In the Studio, choose <b>Other</b> and type any platform name — there is no limit. The prompt is shaped with general rules and tells you to verify clip length, audio and price on that platform.</p></div>
+  <p class="muted">Making for another platform? Tell Muse the platform name in the chat — any platform works. The prompt is shaped with general rules and tells you to verify clip length, audio and price on that platform.</p></div>
   ${k?.tools?.length ? `<div class="card"><h3>Full registry</h3><table><tr><th>Tool</th><th>What it does</th><th>Price</th><th>Limits</th></tr>
   ${k.tools.map((t) => `<tr><td>${esc(t.name)}</td><td>${esc(t.kind || '')} — ${esc(t.clips || '')}</td><td>${esc(t.price || '')}</td><td>${esc(t.limits || '')}</td></tr>`).join('')}</table></div>` : ''}
   <div class="notice warn"><h3>Honest limits</h3><p>${(k?.unverified || []).map(esc).join('<br>')}</p></div>`;
@@ -377,8 +209,7 @@ async function vProjects() {
   try { rows = await api('/api/projects'); } catch (e) { return `<div class="notice warn">${esc(e.message)}</div>`; }
   return `<h1>My Projects</h1>
   ${rows.length ? rows.map((r) => `<div class="card"><h3>${esc(r.title)}</h3><p class="muted">${esc(r.platform || '')} · ${esc(r.updated_at || '')}</p>
-  <button class="btn small" onclick="App.openProject(${r.id})">Open in Studio</button>
-  <button class="btn small danger" onclick="App.deleteProject(${r.id})">Delete</button></div>`).join('') : '<p class="muted">No projects yet. Build one in the Studio and save it.</p>'}`;
+  <button class="btn small danger" onclick="App.deleteProject(${r.id})">Delete</button></div>`).join('') : '<p class="muted">No projects yet.</p>'}`;
 }
 
 async function vWebsites() {
@@ -469,7 +300,7 @@ async function vAdmin() {
 }
 
 async function vAuth() {
-  if (S.user) return `<div class="card"><h2>You are logged in as ${esc(S.user.name)}</h2><p><a class="btn" href="#/studio">Open the Studio</a></p></div>`;
+  if (S.user) return `<div class="card"><h2>You are logged in as ${esc(S.user.name)}</h2><p><a class="btn" href="#/home">Chat with Muse</a></p></div>`;
   return `<h1>Log in / Sign up</h1>
   <div class="card"><h3>Create a free account</h3>
   <p class="muted">The owner chooses up to 10 people to be free forever. After that, new accounts get a <b>14-day free trial</b>, unlimited, with full access to everything. After the trial, you still get 2 free times a week. The first account ever created is the owner.</p>
@@ -547,119 +378,6 @@ window.App = {
       if (msg) msg.innerHTML = `<p class="ok">${r.improveAi ? 'On — your chats may be used to improve the AI.' : 'Off — your chats will not be used to improve the AI.'}</p>`;
     } catch (e) { if (msg) msg.innerHTML = `<p class="bad">${esc(e.message)}</p>`; }
   },
-  setPlatform(id) {
-    S.studio.platform = id;
-    if (id === 'other') { renderStudioStep(); return; } // stay here so the name can be typed
-    S.studio.step = 1; renderStudioStep();
-  },
-  setOtherPlatform() {
-    const v = ($('#fPlatformOther')?.value || '').trim();
-    if (!v) { alert('Type the platform name first — any platform works.'); return; }
-    S.studio.platformOther = v; S.studio.step = 1; renderStudioStep();
-  },
-  saveIdea() { const v = $('#fIdea').value.trim(); if (!v) { alert('Write your idea first, or search what is trending.'); return; } S.studio.idea = v; S.studio.step = 2; renderStudioStep(); },
-  async trending() {
-    const box = $('#trendBox');
-    if (box) box.innerHTML = '<p class="muted">Searching what is trending right now…</p>';
-    try { S.trends = await api('/api/idea/trending', 'POST', { topic: '' }); }
-    catch (e) { S.trends = e.paywall ? { available: false, reason: e.data?.message || e.message } : { available: false, reason: e.message }; }
-    renderStudioStep();
-  },
-  async directions() {
-    const box = $('#dirBox');
-    if (box) box.innerHTML = '<p class="muted">The brain is thinking up three directions…</p>';
-    try { S.directions = await api('/api/idea/directions', 'POST', { topic: S.trends ? 'trending topics people are talking about right now' : S.studio.idea, platform: S.studio.platform === 'other' ? (S.studio.platformOther || 'other') : S.studio.platform }); }
-    catch (e) { S.directions = { raw: e.message }; }
-    renderStudioStep();
-  },
-  useDirection(i) {
-    const d = S.directions?.directions?.[i];
-    if (!d) return;
-    S.studio.idea = d.title + ' — ' + (d.story || '');
-    if (d.styleLead) S.studio.style = d.styleLead;
-    if (d.styleSupport) S.studio.styleSupport = d.styleSupport;
-    S.studio.step = 2; renderStudioStep();
-  },
-  nextStep(step, field, inputId) {
-    const v = document.getElementById(inputId).value.trim();
-    if (!v) { alert('Write this step first. No step is skipped.'); return; }
-    S.studio[field] = v; S.studio.step = step + 1; renderStudioStep();
-  },
-  addScene() { S.studio.scenes.push(''); renderStudioStep(); },
-  saveScenes() {
-    const vals = S.studio.scenes.map((_, i) => (document.getElementById('fScene' + i)?.value || '').trim());
-    if (!vals.some(Boolean)) { alert('Write at least one action.'); return; }
-    S.studio.scenes = vals; S.studio.step = 6; renderStudioStep();
-  },
-  prevStep() { if (S.studio.step > 0) { S.studio.step--; renderStudioStep(); } },
-  async assemble() {
-    const d = S.studio;
-    const scenes = d.scenes.filter(Boolean);
-    const payload = {
-      platform: d.platform, platformOther: d.platformOther, character: d.character, props: d.props, world: d.world, scenes,
-      style: $('#fStyle').value, styleSupport: $('#fStyleSup').value, mixReason: '',
-      shotSize: $('#fShot').value, angle: $('#fAngle').value, movement: $('#fMove').value,
-      lens: d.lens, lighting: $('#fLight').value.trim() || undefined, composition: d.composition,
-      colourMood: $('#fColour').value.trim(), behaviour: $('#fBehav').value.trim(), duration: $('#fDur').value,
-    };
-    try {
-      const r = await api('/api/studio/prompt', 'POST', payload);
-      S.studio.prompt = r; S.studio.imageUrl = null; renderStudioStep();
-    } catch (e) {
-      const box = $('#promptBox');
-      if (box) box.innerHTML = e.paywall ? paywallCard(e) : `<div class="notice warn">${esc(e.message)}</div>`;
-    }
-  },
-  copyPrompt() {
-    const t = S.studio.prompt?.prompt || '';
-    if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => alert('Prompt copied.'));
-    else { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); alert('Prompt copied.'); }
-  },
-  async askMuse() {
-    const input = $('#museChatInput');
-    const text = input.value.trim();
-    if (!text) return;
-    const stepName = STEP_NAMES[S.studio.step];
-    S.museChat.push({ who: 'you', text }); input.value = '';
-    S.museChat.push({ who: 'muse', text: 'Thinking…' });
-    renderStudioStep(); loadMuseTip(S.studio.step);
-    try {
-      const r = await api('/api/chat', 'POST', { message: `We are on step ${S.studio.step + 1} (${stepName}) of the prompt studio. My project so far: idea "${S.studio.idea}", character "${S.studio.character}", props "${S.studio.props}", world "${S.studio.world}", platform "${S.studio.platform}". My question: ${text}` });
-      S.museChat[S.museChat.length - 1] = { who: 'muse', text: r.reply };
-    } catch (e) { S.museChat[S.museChat.length - 1] = { who: 'muse', text: e.message }; }
-    renderStudioStep(); loadMuseTip(S.studio.step);
-  },
-  async suggest(step) {
-    const d = S.studio;
-    if (!d.idea.trim()) { alert('Paste your idea first — the studio suggests from the idea.'); return; }
-    S.suggestBusy = step;
-    renderStudioStep();
-    try {
-      const r = await api('/api/studio/suggest', 'POST', { step, idea: d.idea, character: d.character, props: d.props, world: d.world, platform: d.platform, platformOther: d.platformOther });
-      S.suggest = r;
-    } catch (e) {
-      S.suggest = { step, question: 'The studio could not suggest right now.', suggestions: [], raw: e.message };
-    }
-    S.suggestBusy = '';
-    renderStudioStep();
-  },
-  useSuggestion(i) {
-    const s = S.suggest;
-    if (!s || !s.suggestions || !s.suggestions[i]) return;
-    const d = S.studio;
-    const text = s.suggestions[i].text || '';
-    if (s.step === 'character') { d.character = text; }
-    else if (s.step === 'props') { d.props = text; }
-    else if (s.step === 'world') { d.world = text; }
-    else if (s.step === 'scenes') { d.scenes = s.suggestions.map((g) => g.text || '').filter(Boolean); }
-    renderStudioStep();
-  },
-  websiteForProject() {
-    const d = S.studio;
-    S.websiteDraft = { kind: 'project', title: d.idea.slice(0, 60) || 'My Project', tagline: '', about: d.world || '' };
-    S.websiteSections = [{ heading: 'The story', text: d.idea || '' }, { heading: 'The character', text: d.character || '' }];
-    location.hash = '#/websites'; route();
-  },
   addWebsiteSection() { S.websiteSections.push({ heading: '', text: '' }); route(); },
   async buildWebsite() {
     const sections = S.websiteSections.map((_, i) => ({ heading: document.getElementById('wSecH' + i)?.value || '', text: document.getElementById('wSecT' + i)?.value || '' })).filter((s) => s.heading || s.text);
@@ -685,33 +403,6 @@ window.App = {
   async deleteSite(id) {
     if (!confirm('Delete this website?')) return;
     await api('/api/website/' + id, 'DELETE'); route();
-  },
-  async saveProject() {
-    const d = S.studio;
-    const title = prompt('Name this project:', d.idea.slice(0, 60) || 'Untitled project');
-    if (title === null) return;
-    try {
-      await api('/api/projects', 'POST', { title: title || 'Untitled project', platform: d.platform === 'other' ? (d.platformOther || 'other') : d.platform, data: { ...d, prompt: undefined }, prompt: d.prompt?.prompt || '' });
-      alert('Saved to My Projects.');
-    } catch (e) { alert(e.message); }
-  },
-  async makeImage() {
-    const box = $('#imgBox');
-    if (box) box.innerHTML = '<p class="muted">Creating your image…</p>';
-    try {
-      const r = await api('/api/studio/image', 'POST', { prompt: S.studio.world + ' ' + S.studio.character, style: S.studio.style || 'cinematic realism' });
-      S.studio.imageUrl = r.url; renderStudioStep();
-    } catch (e) {
-      if (box) box.innerHTML = e.paywall ? paywallCard(e) : `<div class="notice warn">${esc(e.message)}</div>`;
-    }
-  },
-  async openProject(id) {
-    try {
-      const p = await api('/api/projects/' + id);
-      const d = p.data || {};
-      S.studio = { ...S.studio, ...d, step: 6, prompt: p.prompt_text ? { prompt: p.prompt_text, checks: [], productionReady: true } : null };
-      location.hash = '#/studio'; route();
-    } catch (e) { alert(e.message); }
   },
   async deleteProject(id) {
     if (!confirm('Delete this project?')) return;

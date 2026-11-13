@@ -76,7 +76,7 @@ app.get('/api/status', (req, res) => {
       owner: 'Free forever, everything unlocked.',
       chosen: 'The owner chooses up to 10 people to be free forever, everything unlocked. Anytime someone wins his heart, he makes it free for them.',
       trial: '14 days free, full access to everything.',
-      afterTrial: 'After the 14 days, you still get 2 free guided uses a week. After those 2, deep thinking tools (the chatbot, live research, trend search, image creation, the full step-by-step prompt studio) need a paid plan. Payments start after the test — no payment provider is integrated yet. Users who do not pay keep basic access: the learning pages. The learning pages stay free forever and never count.',
+      afterTrial: 'After the 14 days, you still get 2 free guided uses a week. After those 2, deep thinking tools (the chatbot, live research, trend search, image creation) need a paid plan. Payments start after the test — no payment provider is integrated yet. Users who do not pay keep basic access: the learning pages. The learning pages stay free forever and never count.',
       moneyFlow: 'When users pay, the money goes to the owner. He is the builder and creator, so he earns from it: subscription payments come to him, the AI thinking costs are paid out of that revenue, and the remainder is his earnings. The app never takes payments for itself and never routes them anywhere except the owner’s account. Natural option: Selar (he already sells his lessons through Selar, in Naira and dollars). Alternatives: Stripe or Paystack. The final provider choice is his, after the test.',
       note: 'This model exists so the cost does not fall on the owner: paying users cover the AI costs, the owner stays free.',
     },

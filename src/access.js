@@ -64,7 +64,7 @@ function requireDeep(req, res, next) {
   return res.status(402).json({
     error: 'Your 2 free times this week are used up.',
     paywall: true,
-    message: 'Deep thinking tools (the chatbot, live research, trend search, image creation and the full step-by-step prompt studio) need a paid plan after your 2 free times a week. Payments start after the test — the owner will share how to continue, and payments go to the owner, never to the app itself. Basic access (learning pages) stays free.',
+    message: 'Deep thinking tools (the chatbot, live research, trend search, image creation) need a paid plan after your 2 free times a week. Payments start after the test — the owner will share how to continue, and payments go to the owner, never to the app itself. Basic access (learning pages) stays free.',
   });
 }
 
