@@ -5,6 +5,8 @@
 //   - Perplexity: research — live search with sources.
 //   - OpenAI (ChatGPT) and Google (Gemini): additional minds.
 //   - Groq: an additional mind — fast open models (free tier, no card).
+//   - OpenRouter: an additional mind — many free models behind one key
+//     (free tier, no card; sign in with Google, no email link).
 //   - Tavily: live search, second option after Perplexity.
 // Keys come from env vars (the owner's keys) or from the user's own stored
 // keys (bring your own key — each user's thinking uses their own key and
@@ -28,6 +30,7 @@ const KEY_ENV = {
   perplexity: 'PERPLEXITY_API_KEY',
   tavily: 'TAVILY_API_KEY',
   groq: 'GROQ_API_KEY',
+  openrouter: 'OPENROUTER_API_KEY',
 };
 
 const PROVIDER_META = {
@@ -37,6 +40,7 @@ const PROVIDER_META = {
   perplexity: { name: 'Perplexity', role: 'Research — live search with sources' },
   tavily: { name: 'Tavily', role: 'Live search (second option)' },
   groq: { name: 'Groq', role: 'Additional mind · fast open models' },
+  openrouter: { name: 'OpenRouter', role: 'Additional mind · free open models' },
 };
 
 function env(name) {
@@ -52,7 +56,7 @@ function keyFor(provider, userKeys) {
 
 function availableProviders(userKeys) {
   const list = [];
-  for (const id of ['anthropic', 'openai', 'gemini', 'groq', 'perplexity']) {
+  for (const id of ['anthropic', 'openai', 'gemini', 'groq', 'openrouter', 'perplexity']) {
     if (keyFor(id, userKeys)) {
       list.push({ id, name: PROVIDER_META[id].name, role: PROVIDER_META[id].role, mine: Boolean(userKeys && userKeys[id]) });
     }
@@ -148,6 +152,41 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000 } =
       body: JSON.stringify({ model: 'openai/gpt-oss-120b', temperature, max_tokens: maxTokens, messages: [{ role: 'system', content: sys }, ...messages] }),
     });
     return { provider: 'groq', model: 'openai/gpt-oss-120b', text: data.choices?.[0]?.message?.content || '' };
+  }
+  // OpenRouter: many free models behind one key, OpenAI-compatible.
+  // Free tier, no card, sign in with Google (no email link).
+  // Primary model: Nemotron 3 Ultra 550B (free). The free roster rotates,
+  // and free models often refuse with 429 when their upstream is busy,
+  // so on a 429 the next model in the list is tried. Free models also
+  // reason before answering, so the token budget gets generous headroom.
+  if (keyFor('openrouter', userKeys)) {
+    const models = [
+      'nvidia/nemotron-3-ultra-550b-a55b:free',
+      'nvidia/nemotron-3.5-super-vl:free',
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+      'openrouter/free',
+    ];
+    const budget = Math.max(maxTokens, 4000);
+    let lastErr = null;
+    for (const model of models) {
+      try {
+        const data = await fetchJson('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            authorization: 'Bearer ' + keyFor('openrouter', userKeys),
+            'HTTP-Referer': 'https://hci-studio-app-production.up.railway.app/',
+            'X-Title': 'HCI Studio',
+          },
+          body: JSON.stringify({ model, temperature, max_tokens: budget, messages: [{ role: 'system', content: sys }, ...messages] }),
+        });
+        return { provider: 'openrouter', model, text: data.choices?.[0]?.message?.content || '' };
+      } catch (e) {
+        lastErr = e;
+        if (!/429/.test(String(e.message || ''))) throw e;
+      }
+    }
+    throw lastErr || new Error('OpenRouter: all free models refused.');
   }
   if (keyFor('perplexity', userKeys)) {
     const data = await fetchJson('https://api.perplexity.ai/chat/completions', {

@@ -376,7 +376,7 @@ async function vSettings() {
   <div class="card"><h3>My own keys (bring your own key)</h3>
   <p class="muted">Your key stays yours. Your thinking uses your own free credits, and the app itself charges nothing. Keys are stored encrypted on the server and never shown back in full.</p>
   ${keys.length ? keys.map((k) => `<p><span class="chip">${esc(k.provider)}</span> <span class="muted">added ${esc(k.created_at || '')}</span> <button class="btn small danger" onclick="App.deleteKey('${esc(k.provider)}')">Remove</button></p>`).join('') : '<p class="muted">No keys added yet.</p>'}
-  <label>Provider</label><select id="keyProvider"><option value="anthropic">Claude (Anthropic) — primary writing brain</option><option value="perplexity">Perplexity — research</option><option value="openai">ChatGPT (OpenAI) — also images</option><option value="gemini">Gemini (Google)</option><option value="tavily">Tavily — live search</option><option value="groq">Groq — fast open models</option></select>
+  <label>Provider</label><select id="keyProvider"><option value="anthropic">Claude (Anthropic) — primary writing brain</option><option value="perplexity">Perplexity — research</option><option value="openai">ChatGPT (OpenAI) — also images</option><option value="gemini">Gemini (Google)</option><option value="tavily">Tavily — live search</option><option value="groq">Groq — fast open models</option><option value="openrouter">OpenRouter — free open models</option></select>
   <label>Key</label><input id="keyValue" type="password" placeholder="Paste your key here" autocomplete="off">
   <button class="btn" onclick="App.saveKey()">Save my key</button></div>
   <div class="card"><h3>My usage today (free limits)</h3>

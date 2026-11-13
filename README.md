@@ -58,6 +58,7 @@ The app runs under **no single AI company**. It is HCI, the owner's own app, and
 - **OpenAI (ChatGPT)** — an additional mind, and image creation.
 - **Google (Gemini)** — an additional mind.
 - **Groq** — an additional mind: fast open models (free tier, no card).
+- **OpenRouter** — an additional mind: many free models behind one key (free tier, no card; sign in with Google, no email link).
 - **Tavily** — live search, second option after Perplexity (free tier, no card).
 
 Each user may add **their own key** (Settings → My own keys). Their thinking then uses their own key and their own free credits. Keys are stored encrypted on the server (AES-256-GCM) and never shown back in full. **If no key is set, the app still works** for prompt-building from its built-in HCI knowledge — and it says plainly that the live brain needs a key. It never pretends to think when it cannot.
@@ -92,6 +93,7 @@ The app itself charges nothing. The thinking uses provider free credits:
 
 - **Google Gemini API (AI Studio) — the best place to start.** Google's Gemini API has a free tier: free input and output tokens on Flash and Flash-Lite models and Gemini 2.5 Pro, with no card and no billing account (checked October 2026; limits are per project and shown in AI Studio). You are only billed after you link a billing account. The app uses `gemini-2.5-flash` for Gemini.
 - **Groq — free, no card.** Fast open models (the app uses `openai/gpt-oss-120b`). Free tier: about 30 requests a minute and 1,000 a day per model (checked 13 November 2026). Sign up at console.groq.com, no card.
+- **OpenRouter — free, no card.** Many free models behind one key (the app uses `nvidia/nemotron-3-ultra-550b-a55b:free` first, then other free Nemotron models if it refuses with a 429). Free tier: 50 requests a day (checked 13 November 2026). Sign up at openrouter.ai with Google — no email link, no card.
 - **Tavily — free, no card.** A second option for live search with sources: 1,000 API credits a month on the free Researcher plan (checked 13 November 2026). Sign up at tavily.com, no card.
 - **Perplexity API** — needs a payment method (card) to create a key (checked 13 November 2026). Needed for full live research with sources if Tavily is not used.
 - **Anthropic (Claude)** — no free trial credits: a key needs $10 of credits ($10.75 with tax) bought by card, a one-time purchase (checked 13 November 2026).
@@ -153,7 +155,7 @@ hci_studio_app/
 │   ├── access.js        # trial / paywall / owner-free logic
 │   ├── limits.js        # free daily limits per person
 │   ├── userKeys.js      # per-user provider keys, encrypted (AES-256-GCM)
-│   ├── providers.js     # one brain layer: Claude / ChatGPT / Gemini / Groq / Perplexity + images
+│   ├── providers.js     # one brain layer: Claude / ChatGPT / Gemini / Groq / OpenRouter / Perplexity + images
 │   ├── muse.js          # Muse, the in-app assistant (persona + step tips)
 │   ├── search.js        # live trending search (Perplexity → Tavily → DuckDuckGo)
 │   ├── platforms.js     # what each video platform can and cannot do
