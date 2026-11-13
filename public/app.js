@@ -3,7 +3,7 @@
 const S = {
   status: null, knowledge: null, tutorials: [], platforms: [],
   user: null, access: null,
-  studio: { step: 0, platform: '', idea: '', character: '', props: '', world: '', scenes: [''], style: '', styleSupport: '', mixReason: '', shotSize: 'Medium shot', angle: 'Eye level', movement: 'Static', lens: '', lighting: '', composition: '', colourMood: '', behaviour: '', duration: '', prompt: null, imageUrl: null },
+  studio: { step: 0, platform: '', platformOther: '', idea: '', character: '', props: '', world: '', scenes: [''], style: '', styleSupport: '', mixReason: '', shotSize: 'Medium shot', angle: 'Eye level', movement: 'Static', lens: '', lighting: '', composition: '', colourMood: '', behaviour: '', duration: '', prompt: null, imageUrl: null },
   trends: null, directions: null, chatLog: [], museChat: [], greeting: '', sites: [], websiteDraft: null, websiteSections: [{ heading: '', text: '' }],
 };
 const $ = (s) => document.querySelector(s);
@@ -129,7 +129,7 @@ async function vHome() {
 const STEP_NAMES = ['Platform', 'Idea', 'Character', 'Props', 'World', 'Scenes', 'Prompt'];
 function stepDone(i) {
   const d = S.studio;
-  if (i === 0) return !!d.platform;
+  if (i === 0) return !!d.platform && (d.platform !== 'other' || !!String(d.platformOther || '').trim());
   if (i === 1) return !!d.idea.trim();
   if (i === 2) return !!d.character.trim();
   if (i === 3) return !!d.props.trim();
@@ -147,9 +147,11 @@ function renderStudioStep() {
   let html = '';
   if (d.step === 0) {
     html = `<h3>Step 1 — Which platform are you making for?</h3>
-    <p class="muted">The app asks first, because a Kling prompt is not a Runway prompt. Pick one.</p>
-    <div>${S.platforms.map((p) => `<button class="pill ${d.platform === p.id ? 'on' : ''}" onclick="App.setPlatform('${p.id}')">${esc(p.name)}</button>`).join('')}</div>
-    ${d.platform ? `<div class="card">${(() => { const p = S.platforms.find((x) => x.id === d.platform); return p ? `<b>${esc(p.name)}</b><br>Clips: ${esc(p.clip)}<br>Audio: ${esc(p.audio)}` : ''; })()}</div>` : ''}`;
+    <p class="muted">The app asks first, because a Kling prompt is not a Runway prompt. Pick one — all ten are listed, and if yours is not there, choose Other and type any platform name. There is no limit.</p>
+    <div>${S.platforms.map((p) => `<button class="pill ${d.platform === p.id ? 'on' : ''}" onclick="App.setPlatform('${p.id}')">${esc(p.name)}</button>`).join('')}<button class="pill ${d.platform === 'other' ? 'on' : ''}" onclick="App.setPlatform('other')">Other — another platform</button></div>
+    ${d.platform === 'other' ? `<div class="card"><label>What platform are you making for?</label><input id="fPlatformOther" placeholder="e.g. Hailuo, Vidu, Firefly — any platform" value="${esc(d.platformOther)}"><button class="btn" onclick="App.setOtherPlatform()">Use this platform</button><p class="muted">Any platform works. The prompt is shaped with general rules, and it tells you to verify clip length, audio and price on the platform before spending.</p></div>` : ''}
+    ${d.platform && d.platform !== 'other' ? `<div class="card">${(() => { const p = S.platforms.find((x) => x.id === d.platform); return p ? `<b>${esc(p.name)}</b><br>Clips: ${esc(p.clip)}<br>Audio: ${esc(p.audio)}` : ''; })()}</div>` : ''}
+    ${d.platform === 'other' && d.platformOther ? `<div class="card"><b>${esc(d.platformOther)}</b><br>Your own platform — not in the registry yet. Shaped with general rules: one short clip, one shot, one camera move.</div>` : ''}`;
   } else if (d.step === 1) {
     html = `<h3>Step 2 — Your idea</h3>
     <p class="muted">Type your own idea — or let the studio think for itself and search what is trending right now.</p>
@@ -283,7 +285,8 @@ async function vTools() {
   <p class="muted">November 2026 registry. Verify on the vendor's own documentation, on the plan actually used, before spending.</p>
   <div class="card"><h3>Platforms the Studio writes for</h3>
   <table><tr><th>Platform</th><th>Clips</th><th>Audio</th></tr>
-  ${S.platforms.map((p) => `<tr><td>${esc(p.name)}</td><td>${esc(p.clip)}</td><td>${esc(p.audio)}</td></tr>`).join('')}</table></div>
+  ${S.platforms.map((p) => `<tr><td>${esc(p.name)}</td><td>${esc(p.clip)}</td><td>${esc(p.audio)}</td></tr>`).join('')}</table>
+  <p class="muted">Making for another platform? In the Studio, choose <b>Other</b> and type any platform name — there is no limit. The prompt is shaped with general rules and tells you to verify clip length, audio and price on that platform.</p></div>
   ${k?.tools?.length ? `<div class="card"><h3>Full registry</h3><table><tr><th>Tool</th><th>What it does</th><th>Price</th><th>Limits</th></tr>
   ${k.tools.map((t) => `<tr><td>${esc(t.name)}</td><td>${esc(t.kind || '')} — ${esc(t.clips || '')}</td><td>${esc(t.price || '')}</td><td>${esc(t.limits || '')}</td></tr>`).join('')}</table></div>` : ''}
   <div class="notice warn"><h3>Honest limits</h3><p>${(k?.unverified || []).map(esc).join('<br>')}</p></div>`;
@@ -449,7 +452,16 @@ window.App = {
     } catch (e) { S.chatLog[S.chatLog.length - 1] = { who: 'hci', text: e.message }; }
     route();
   },
-  setPlatform(id) { S.studio.platform = id; S.studio.step = 1; renderStudioStep(); },
+  setPlatform(id) {
+    S.studio.platform = id;
+    if (id === 'other') { renderStudioStep(); return; } // stay here so the name can be typed
+    S.studio.step = 1; renderStudioStep();
+  },
+  setOtherPlatform() {
+    const v = ($('#fPlatformOther')?.value || '').trim();
+    if (!v) { alert('Type the platform name first — any platform works.'); return; }
+    S.studio.platformOther = v; S.studio.step = 1; renderStudioStep();
+  },
   saveIdea() { const v = $('#fIdea').value.trim(); if (!v) { alert('Write your idea first, or search what is trending.'); return; } S.studio.idea = v; S.studio.step = 2; renderStudioStep(); },
   async trending() {
     const box = $('#trendBox');
@@ -461,7 +473,7 @@ window.App = {
   async directions() {
     const box = $('#dirBox');
     if (box) box.innerHTML = '<p class="muted">The brain is thinking up three directions…</p>';
-    try { S.directions = await api('/api/idea/directions', 'POST', { topic: S.trends ? 'trending topics people are talking about right now' : S.studio.idea, platform: S.studio.platform }); }
+    try { S.directions = await api('/api/idea/directions', 'POST', { topic: S.trends ? 'trending topics people are talking about right now' : S.studio.idea, platform: S.studio.platform === 'other' ? (S.studio.platformOther || 'other') : S.studio.platform }); }
     catch (e) { S.directions = { raw: e.message }; }
     renderStudioStep();
   },
@@ -489,7 +501,7 @@ window.App = {
     const d = S.studio;
     const scenes = d.scenes.filter(Boolean);
     const payload = {
-      platform: d.platform, character: d.character, props: d.props, world: d.world, scenes,
+      platform: d.platform, platformOther: d.platformOther, character: d.character, props: d.props, world: d.world, scenes,
       style: $('#fStyle').value, styleSupport: $('#fStyleSup').value, mixReason: '',
       shotSize: $('#fShot').value, angle: $('#fAngle').value, movement: $('#fMove').value,
       lens: d.lens, lighting: $('#fLight').value.trim() || undefined, composition: d.composition,
@@ -559,7 +571,7 @@ window.App = {
     const title = prompt('Name this project:', d.idea.slice(0, 60) || 'Untitled project');
     if (title === null) return;
     try {
-      await api('/api/projects', 'POST', { title: title || 'Untitled project', platform: d.platform, data: { ...d, prompt: undefined }, prompt: d.prompt?.prompt || '' });
+      await api('/api/projects', 'POST', { title: title || 'Untitled project', platform: d.platform === 'other' ? (d.platformOther || 'other') : d.platform, data: { ...d, prompt: undefined }, prompt: d.prompt?.prompt || '' });
       alert('Saved to My Projects.');
     } catch (e) { alert(e.message); }
   },

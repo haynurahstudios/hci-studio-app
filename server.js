@@ -184,7 +184,7 @@ app.post('/api/idea/directions', auth.requireLogin, access.requireDeep, async (r
   const platform = String(req.body?.platform || '').trim();
   if (!topic) return res.status(400).json({ error: 'Tell the studio what the idea is about, or use trending ideas first.' });
   try {
-    const platformNote = PLATFORMS[platform] ? ` The finished work is for ${PLATFORMS[platform].name}: ${PLATFORMS[platform].clip}. ${PLATFORMS[platform].audio}` : '';
+    const platformNote = PLATFORMS[platform] ? ` The finished work is for ${PLATFORMS[platform].name}: ${PLATFORMS[platform].clip}. ${PLATFORMS[platform].audio}` : (platform ? ` The finished work is for ${platform} — your own platform, not in the registry, so keep the clip short and verify length and audio on the platform.` : '');
     const out = await providers.think(
       [{ role: 'user', content:
         `You are HCI. A student has no idea and wants fresh, original directions about: ${topic}.${platformNote}\n` +

@@ -19,9 +19,14 @@ function assemble(input) {
     }
   }
   if (missing.length) return { ok: false, missing };
+  // "Other" means any platform the student names — no limit on which one.
+  // The name itself is required; the platform is never restricted.
+  const isOther = input.platform === 'other';
+  const otherName = isOther ? String(input.platformOther || '').trim() : '';
+  if (isOther && !otherName) return { ok: false, missing: ['platform'] };
 
-  const platform = PLATFORMS[input.platform] || null;
-  const platformName = platform ? platform.name : String(input.platform);
+  const platform = !isOther ? (PLATFORMS[input.platform] || null) : null;
+  const platformName = platform ? platform.name : (isOther ? otherName : String(input.platform));
 
   const shot = input.shotSize || 'Medium shot';
   const angle = input.angle || 'Eye level';
@@ -46,7 +51,9 @@ function assemble(input) {
 
   const platformLine = platform
     ? `Made for ${platform.name}. ${platform.clip}. ${platform.audio} ${platform.promptShape}`
-    : `Made for ${platformName}.`;
+    : isOther
+      ? `Made for ${platformName} — your own platform, not in the registry yet. Shaped with general rules: one short clip, one shot, one camera move. Verify clip length, audio and price on the platform before spending.`
+      : `Made for ${platformName}.`;
 
   const parts = [
     `${shot}, ${angle}, ${movement}.`,
@@ -72,7 +79,7 @@ function assemble(input) {
     { name: 'Action in order, visible and timed', pass: true },
     { name: 'Lighting described (soft warm directional light + gentle fill)', pass: /soft warm/i.test(lighting) || /directional/i.test(lighting) },
     { name: 'Visual style chosen', pass: Boolean(style) },
-    { name: 'Tool checked against the registry (' + platformName + ')', pass: Boolean(platform) },
+    { name: isOther ? `Your platform, not in the registry yet (${platformName}) — verify clip length, audio and price on the platform` : `Tool checked against the registry (${platformName})`, pass: Boolean(platform) || isOther },
     { name: 'Decency ruling carried in the prompt', pass: true },
     { name: 'No placeholders, no draft', pass: !/insert|TODO|\[.*\]/.test(parts.join(' ')) },
   ];
