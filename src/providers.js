@@ -219,14 +219,18 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000, im
     } catch (e) { lastProviderErr = e; }
   }
   // OpenRouter: the three free Nemotron models work as a TEAM. They are
-  // asked at the same time, and the best answer that comes back is used
-  // (Ultra first, then Super VL, then Nano). If only one of them is up,
-  // that one answers alone; if two are up, those two carry it. If all
-  // three are down, the openrouter/free router is tried once as a last
-  // resort. A team costs 3 free calls per chat instead of 1, so the free
-  // 50-a-day limit finishes faster — that is the price of working together.
-  // Free tier, no card, sign in with Google (no email link). Free models
-  // also reason before answering, so the token budget gets generous headroom.
+  // asked at the same time, and the FIRST one that answers is used — the
+  // chat never waits for the slowest model. (It used to wait for all
+  // three before answering, which made plain text chats extremely slow.)
+  // If only one of them is up, that one answers alone; if two are up,
+  // the faster of the two carries it. If all three are down, the
+  // openrouter/free router is tried once as a last resort. A team costs
+  // 3 free calls per chat instead of 1, so the free 50-a-day limit
+  // finishes faster — that is the price of working together. Free tier,
+  // no card, sign in with Google (no email link). Free models also
+  // reason before answering, so the token budget gets generous headroom.
+  // Each model gets 30 seconds: a slow one fails fast instead of
+  // holding the chat up.
   if (keyFor('openrouter', userKeys)) {
     try {
     const team = [
@@ -244,16 +248,20 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000, im
         'X-Title': 'HCI Studio',
       },
       body: JSON.stringify({ model, temperature, max_tokens: budget, messages: [{ role: 'system', content: sys }, ...messages] }),
-    }).then((data) => ({ model, text: data.choices?.[0]?.message?.content || '' }));
-    // The team works together: all three are asked at once, and the best
-    // answer wins. Any one of them can answer alone if the others are down.
-    const results = await Promise.allSettled(team.map(callModel));
-    for (let i = 0; i < team.length; i++) {
-      if (results[i].status === 'fulfilled' && results[i].value.text) {
-        return { provider: 'openrouter', model: results[i].value.model, text: results[i].value.text };
-      }
+    }, 30000).then((data) => {
+      const text = data.choices?.[0]?.message?.content || '';
+      if (!text) throw new Error('Empty answer from ' + model);
+      return { model, text };
+    });
+    // The team works together: all three are asked at once, and the
+    // first one that answers is used. A slow model never holds the chat
+    // up — the fastest good answer wins.
+    try {
+      const first = await Promise.any(team.map(callModel));
+      return { provider: 'openrouter', model: first.model, text: first.text };
+    } catch (e) {
+      var lastErr = (e.errors && e.errors[0]) || e;
     }
-    const lastErr = (results.find((r) => r.status === 'rejected') || {}).reason || null;
     // Last resort: the router picks any free model that is up.
     try {
       const data = await fetchJson('https://openrouter.ai/api/v1/chat/completions', {
