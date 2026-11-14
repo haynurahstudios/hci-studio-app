@@ -42,6 +42,7 @@ async function boot() {
   // When the network comes back, retry a chat message that failed while
   // it was off — the user should never be stuck on "Failed to fetch".
   window.addEventListener('online', () => { if (S.chatFailed) App.retryChat(); });
+  loadChat(); // bring back the chat from this phone, before the first render
   route();
 }
 
@@ -66,6 +67,7 @@ function needLogin() {
 }
 
 function route() {
+  saveChat(); // the chat is remembered on this phone, even after a reload
   const page = (location.hash || '#/home').replace('#/', '').split('?')[0] || 'home';
   setNav(page);
   const view = $('#view');
@@ -117,6 +119,36 @@ function renderChatText(text) {
     return esc(part).replace(/\n/g, '<br>');
   }).join('');
 }
+// ---------------- Chat memory: the chat must NOT be forgotten --------
+// The chat lives on the person's own phone, in the browser's storage
+// (localStorage) — not on the server, and never in the live database.
+// It is saved after every change, so the chat is still there when the
+// page reloads or the phone is turned off and on again. Only the last
+// 30 messages of each space are kept, so the storage never fills up.
+// A message that is still "Thinking…" or that failed is not saved —
+// after a reload the person sees their own message and can send it again.
+function saveChat() {
+  try {
+    const keep = (log) => log.filter((m) => m.text !== 'Thinking…' && !m.failed).slice(-30).map((m) => ({ who: m.who, text: m.text, image: m.image || undefined }));
+    localStorage.setItem('hci-chat-v1', JSON.stringify({ work: keep(S.chatLog), friendly: keep(S.friendlyLog), space: S.chatSpace }));
+  } catch (e) {
+    try {
+      // Storage is full (pictures are big): save the words without the pictures.
+      const keepNoImg = (log) => log.filter((m) => m.text !== 'Thinking…' && !m.failed).slice(-30).map((m) => ({ who: m.who, text: m.text }));
+      localStorage.setItem('hci-chat-v1', JSON.stringify({ work: keepNoImg(S.chatLog), friendly: keepNoImg(S.friendlyLog), space: S.chatSpace }));
+    } catch (_) { /* storage unavailable — the chat still works, it just will not be remembered */ }
+  }
+}
+function loadChat() {
+  try {
+    const raw = localStorage.getItem('hci-chat-v1');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (Array.isArray(d.work)) S.chatLog = d.work.filter((m) => m && typeof m.text === 'string');
+    if (Array.isArray(d.friendly)) S.friendlyLog = d.friendly.filter((m) => m && typeof m.text === 'string');
+    if (d.space === 'work' || d.space === 'friendly') S.chatSpace = d.space;
+  } catch (_) { /* corrupt or unavailable storage — start with an empty chat */ }
+}
 function chatLogHtml() {
   const space = S.chatSpace;
   const log = space === 'friendly' ? S.friendlyLog : S.chatLog;
@@ -137,7 +169,7 @@ function chatLogHtml() {
 function chatCardHtml() {
   const loggedIn = !!S.user;
   return `<div class="card chat-card"><h3>Chat with Muse</h3>
-    <div class="chat-tabs"><button class="pill ${S.chatSpace === 'work' ? 'on' : ''}" onclick="App.setSpace('work')">\u{1F4BC} Workspace</button><button class="pill ${S.chatSpace === 'friendly' ? 'on' : ''}" onclick="App.setSpace('friendly')">\u{1F4AC} Friendly chat</button></div>
+    <div class="chat-tabs"><button class="pill ${S.chatSpace === 'work' ? 'on' : ''}" onclick="App.setSpace('work')">\u{1F4BC} Workspace</button><button class="pill ${S.chatSpace === 'friendly' ? 'on' : ''}" onclick="App.setSpace('friendly')">\u{1F4AC} Friendly chat</button><button class="btn small ghost" onclick="App.clearChat()">Clear chat</button></div>
     <div id="chatLog" class="chatlog">${chatLogHtml()}</div>
     ${loggedIn
       ? `${S.chatImage ? `<div class="chat-preview"><img src="${S.chatImage}" class="chat-img" alt="Picture to send"><button class="btn small ghost" onclick="App.chatImageRemove()">Remove</button></div>` : ''}
@@ -529,8 +561,16 @@ window.App = {
     log.push({ who: 'you', text, image: image || undefined }); input.value = '';
     S.chatImage = null;
     log.push({ who: 'hci', text: 'Thinking…' });
+    if (log.length > 100) log.splice(0, log.length - 100); // keep the chat light in memory
     route();
     await this.sendChat(log, space, text, image);
+  },
+  // Clear the chat on this phone (this space only) — the saved chat goes too.
+  clearChat() {
+    if (S.chatSpace === 'friendly') S.friendlyLog = []; else S.chatLog = [];
+    S.chatFailed = null;
+    saveChat();
+    route();
   },
   // Attach a picture to the next chat message. The picture is made
   // smaller on the phone first (longest side 1024px, JPEG) so it stays
