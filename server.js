@@ -360,8 +360,11 @@ app.post('/api/studio/image', auth.requireLogin, access.requireDeep, async (req,
   const over = limits.checkLimit(req.user, 'image');
   if (over) return res.status(429).json({ error: over.message });
   const keys = userKeysFor(req);
-  if (!providers.keyFor('openai', keys)) {
-    return res.status(503).json({ error: 'Image creation needs an OpenAI key. Add your own key in Settings, or ask the owner to set one. The studio will not pretend to create an image it cannot make.' });
+  // Images are made by Cloudflare (free) first, OpenAI (paid) as the
+  // fallback — either one being set is enough. It used to demand an
+  // OpenAI key even though Cloudflare makes the images.
+  if (!providers.brainStatus(keys).imageReady) {
+    return res.status(503).json({ error: 'Image creation needs an image key. Add your own key in Settings, or ask the owner to set one. The studio will not pretend to create an image it cannot make.' });
   }
   const prompt = String(req.body?.prompt || '').trim();
   const style = String(req.body?.style || 'cinematic realism').trim();
@@ -371,7 +374,10 @@ app.post('/api/studio/image', auth.requireLogin, access.requireDeep, async (req,
     const id = db.prepare('INSERT INTO images (user_id, project_id, prompt, style, model, file_path) VALUES (?, ?, ?, ?, ?, ?)').run(
       req.user.id, req.body?.projectId || null, prompt, style, img.model, ''
     ).lastInsertRowid;
-    const filePath = path.join(DATA_DIR, 'images', id + '.png');
+    // Cloudflare makes JPEGs, OpenAI makes PNGs — save with the right
+    // ending so the picture is served as the right kind.
+    const ext = img.mime === 'image/jpeg' ? '.jpg' : '.png';
+    const filePath = path.join(DATA_DIR, 'images', id + ext);
     fs.writeFileSync(filePath, Buffer.from(img.base64, 'base64'));
     db.prepare('UPDATE images SET file_path = ? WHERE id = ?').run(filePath, id);
     logUsage(req.user.id, 'image', img.provider, img.model, style, true);
@@ -388,7 +394,7 @@ app.get('/api/images/:id', auth.requireLogin, (req, res) => {
   if (!row) return res.status(404).json({ error: 'Image not found.' });
   if (row.user_id !== req.user.id && req.user.role !== 'owner') return res.status(403).json({ error: 'That image is not yours.' });
   if (!fs.existsSync(row.file_path)) return res.status(404).json({ error: 'Image file is gone.' });
-  res.type('image/png').sendFile(row.file_path);
+  res.sendFile(row.file_path); // the kind (JPEG or PNG) comes from the file ending
 });
 
 // ---------- Projects ----------

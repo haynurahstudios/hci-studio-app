@@ -350,8 +350,13 @@ async function createImageCloudflare(prompt, style) {
   }
   const ct = res.headers.get('content-type') || '';
   if (ct.includes('application/json')) {
-    const text = await res.text().catch(() => '');
-    throw new Error('Cloudflare image error: ' + text.slice(0, 200));
+    // Workers AI answers with JSON, not a raw image file:
+    // {"result":{"image":"<base64 JPEG>"}, "success": true, ...}.
+    // The picture is inside the JSON — read it out of there.
+    const j = await res.json().catch(() => null);
+    const b64 = j && j.result && typeof j.result.image === 'string' ? j.result.image : '';
+    if (!b64) throw new Error('Cloudflare image error: no image in the answer.');
+    return { provider: 'cloudflare', model: 'flux-1-schnell', base64: b64, mime: 'image/jpeg' };
   }
   const buf = Buffer.from(await res.arrayBuffer());
   if (!buf.length) throw new Error('The image provider returned no image.');
