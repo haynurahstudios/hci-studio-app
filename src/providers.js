@@ -7,6 +7,10 @@
 //   - Groq: an additional mind — fast open models (free tier, no card).
 //   - OpenRouter: an additional mind — many free models behind one key
 //     (free tier, no card; sign in with Google, no email link).
+//   - Cloudflare Workers AI: an additional mind — the free text model
+//     gpt-oss-120b (free tier, no card). Same token and account ID as
+//     the images (already set). It answers when OpenRouter's free daily
+//     limit is finished, so the chat does not go quiet.
 //   - Tavily: live search, second option after Perplexity.
 // Keys come from env vars (the owner's keys) or from the user's own stored
 // keys (bring your own key — each user's thinking uses their own key and
@@ -41,6 +45,7 @@ const PROVIDER_META = {
   tavily: { name: 'Tavily', role: 'Live search (second option)' },
   groq: { name: 'Groq', role: 'Additional mind · fast open models' },
   openrouter: { name: 'OpenRouter', role: 'Additional mind · free open models' },
+  cloudflare: { name: 'Cloudflare Workers AI', role: 'Additional mind · free text model' },
 };
 
 function env(name) {
@@ -60,6 +65,11 @@ function availableProviders(userKeys) {
     if (keyFor(id, userKeys)) {
       list.push({ id, name: PROVIDER_META[id].name, role: PROVIDER_META[id].role, mine: Boolean(userKeys && userKeys[id]) });
     }
+  }
+  // Cloudflare is a brain too (its free text model) — it needs the token
+  // AND the account ID, not a single key, so it is listed on its own.
+  if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) {
+    list.push({ id: 'cloudflare', name: PROVIDER_META.cloudflare.name, role: PROVIDER_META.cloudflare.role, mine: false });
   }
   return list;
 }
@@ -274,6 +284,28 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000, im
       });
       return { provider: 'openrouter', model: 'openrouter/free', text: data.choices?.[0]?.message?.content || '' };
     } catch (e) { throw lastErr || e; }
+    } catch (e) { lastProviderErr = e; }
+  }
+  // Cloudflare Workers AI — the free text model (gpt-oss-120b). Same
+  // token and account ID as the images (already set, no new key, no
+  // card). It is tried right after OpenRouter, so when OpenRouter's free
+  // daily limit is finished the chat still answers instead of going
+  // quiet. Workers AI answers with JSON: {"result":{"response":"..."}}.
+  if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) {
+    try {
+    const data = await fetchJson(
+      'https://api.cloudflare.com/client/v4/accounts/' + process.env.CLOUDFLARE_ACCOUNT_ID + '/ai/run/@cf/openai/gpt-oss-120b',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: 'Bearer ' + process.env.CLOUDFLARE_API_TOKEN },
+        body: JSON.stringify({ messages: [{ role: 'system', content: sys }, ...messages], max_tokens: maxTokens }),
+      },
+      60000
+    );
+    const r = data && data.result;
+    const text = (r && typeof r.response === 'string') ? r.response : (typeof r === 'string' ? r : '');
+    if (!text) throw new Error('Empty answer from Cloudflare');
+    return { provider: 'cloudflare', model: 'gpt-oss-120b', text };
     } catch (e) { lastProviderErr = e; }
   }
   if (keyFor('perplexity', userKeys)) {
