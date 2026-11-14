@@ -218,19 +218,17 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000, im
     return { provider: 'groq', model: 'openai/gpt-oss-120b', text: data.choices?.[0]?.message?.content || '' };
     } catch (e) { lastProviderErr = e; }
   }
-  // OpenRouter: the three free Nemotron models work as a TEAM. They are
-  // asked at the same time, and the FIRST one that answers is used — the
-  // chat never waits for the slowest model. (It used to wait for all
-  // three before answering, which made plain text chats extremely slow.)
-  // If only one of them is up, that one answers alone; if two are up,
-  // the faster of the two carries it. If all three are down, the
-  // openrouter/free router is tried once as a last resort. A team costs
-  // 3 free calls per chat instead of 1, so the free 50-a-day limit
-  // finishes faster — that is the price of working together. Free tier,
-  // no card, sign in with Google (no email link). Free models also
-  // reason before answering, so the token budget gets generous headroom.
-  // Each model gets 30 seconds: a slow one fails fast instead of
-  // holding the chat up.
+  // OpenRouter: the three free Nemotron models work as a TEAM, one at a
+  // time. Ultra is asked first; if it is down or slow, Super VL is
+  // asked; if that is down, Nano. Only ONE of them answers a chat, so
+  // one chat costs ONE free call — not three. (They used to be asked all
+  // at once, which was fast but burned 3 calls per chat, and the free
+  // 50-a-day limit finished after only about 16 chats. One at a time
+  // gives 50 chats a day.) If all three are down, the openrouter/free
+  // router is tried once as a last resort. Free tier, no card, sign in
+  // with Google (no email link). Free models also reason before
+  // answering, so the token budget gets generous headroom. Each model
+  // gets 30 seconds: a slow one fails fast instead of holding the chat up.
   if (keyFor('openrouter', userKeys)) {
     try {
     const team = [
@@ -253,14 +251,14 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000, im
       if (!text) throw new Error('Empty answer from ' + model);
       return { model, text };
     });
-    // The team works together: all three are asked at once, and the
-    // first one that answers is used. A slow model never holds the chat
-    // up — the fastest good answer wins.
-    try {
-      const first = await Promise.any(team.map(callModel));
-      return { provider: 'openrouter', model: first.model, text: first.text };
-    } catch (e) {
-      var lastErr = (e.errors && e.errors[0]) || e;
+    // One at a time, in order: the first model that answers is used, and
+    // the others are never even asked. One chat costs one free call.
+    var lastErr = null;
+    for (const model of team) {
+      try {
+        const done = await callModel(model);
+        return { provider: 'openrouter', model: done.model, text: done.text };
+      } catch (e) { lastErr = e; }
     }
     // Last resort: the router picks any free model that is up.
     try {
