@@ -110,6 +110,28 @@ async function fetchJson(url, options, timeoutMs = TIMEOUT_MS) {
   }
 }
 
+// Cloudflare Workers AI answers gpt-oss in the Responses API shape:
+// {"result":{"output":[{"type":"message","content":[{"type":"output_text","text":"..."}]}]}}.
+// Plain text models answer {"result":{"response":"..."}}. Read both,
+// and the plain string form too — the answer is never just assumed.
+function cloudflareText(data) {
+  const r = data && data.result;
+  if (!r) return '';
+  if (typeof r.response === 'string' && r.response) return r.response;
+  if (Array.isArray(r.output)) {
+    let text = '';
+    for (const item of r.output) {
+      if (!item || !Array.isArray(item.content)) continue;
+      for (const c of item.content) {
+        if (c && (c.type === 'output_text' || c.type === 'text') && typeof c.text === 'string') text += c.text;
+      }
+    }
+    if (text) return text;
+  }
+  if (typeof r === 'string') return r;
+  return '';
+}
+
 // One chat call, routed to the first available provider.
 // Preference order: Claude (writes best) -> ChatGPT -> Gemini -> Perplexity.
 // If a provider fails (wrong key, no credit, busy), the next provider is
@@ -298,12 +320,14 @@ async function think(messages, { system, temperature = 0.7, maxTokens = 2000, im
       {
         method: 'POST',
         headers: { 'content-type': 'application/json', authorization: 'Bearer ' + process.env.CLOUDFLARE_API_TOKEN },
-        body: JSON.stringify({ messages: [{ role: 'system', content: sys }, ...messages], max_tokens: maxTokens }),
+        // gpt-oss reasons before it answers, so it gets the same generous
+        // headroom as the OpenRouter team (at least 4000 tokens) — with
+        // only 1200 it used them all on thinking and answered nothing.
+        body: JSON.stringify({ messages: [{ role: 'system', content: sys }, ...messages], max_tokens: Math.max(maxTokens, 4000) }),
       },
       60000
     );
-    const r = data && data.result;
-    const text = (r && typeof r.response === 'string') ? r.response : (typeof r === 'string' ? r : '');
+    const text = cloudflareText(data);
     if (!text) throw new Error('Empty answer from Cloudflare');
     return { provider: 'cloudflare', model: 'gpt-oss-120b', text };
     } catch (e) { lastProviderErr = e; }
@@ -433,4 +457,4 @@ async function createImage(prompt, style, userKeys = null) {
   throw new Error('The image provider returned no image.');
 }
 
-module.exports = { availableProviders, hasBrain, brainStatus, think, research, createImage, keyFor, PROVIDER_META, logUsage, buildVisionMessages };
+module.exports = { availableProviders, hasBrain, brainStatus, think, research, createImage, keyFor, PROVIDER_META, logUsage, buildVisionMessages, cloudflareText };
